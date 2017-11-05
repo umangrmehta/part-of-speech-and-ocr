@@ -12,17 +12,20 @@
 
 import random
 import math
+import numpy as np
 
-pos={}
-word={}
-wordPos={}
+pos = {}
+word = {}
+wordPos = {}
+transitions = np.zeros((12, 12), dtype=np.int_)
+posIDX = {"ADJ" : 0, "ADV" : 1, "ADP" : 2, "CONJ" : 3, "DET" : 4, "NOUN" : 5, "NUM" : 6, "PRON" : 7, "PRT" : 8, "VERB" : 9, "X" : 10, "." : 11}
+
 
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
 # that we've supplied.
 #
 class Solver:
-
 	# Calculate the log of the posterior probability of a given sentence
 	#  with a given part-of-speech labeling
 	def posterior(self, sentence, label):
@@ -32,13 +35,13 @@ class Solver:
 	#
 	def train(self, data):
 		posCount = 0
-		for i in range (0, len(data), 1):
-			for j in range (0, len(data[i][0]), 1):
+		for i in range(0, len(data), 1):
+			for j in range(0, len(data[i][0]), 1):
 				# part of speech and its count
 				posKey = key = data[i][1][j]
 				pos[key] = pos[key] + 1 if key in pos else 1
 				# word and its count
-				wordKey=key = data[i][0][j]
+				wordKey = key = data[i][0][j]
 				word[key] = word[key] + 1 if key in word else 1
 				# word & parts of speech and its count
 				if wordKey in wordPos:
@@ -48,18 +51,20 @@ class Solver:
 					posDict = {posKey: 1}
 					wordPos[wordKey] = posDict
 
+				if j > 0:
+					prevPOS = data[i][1][j - 1]
+					transitions[posIDX[prevPOS], posIDX[posKey]] += 1
 
 	# Functions for each algorithm.
 	#
 	def simplified(self, sentence):
-		return [ "noun" ] * len(sentence)
+		return ["noun"] * len(sentence)
 
 	def hmm_ve(self, sentence):
-		return [ "noun" ] * len(sentence)
+		return ["noun"] * len(sentence)
 
 	def hmm_viterbi(self, sentence):
-		return [ "noun" ] * len(sentence)
-
+		return ["noun"] * len(sentence)
 
 	# This solve() method is called by label.py, so you should keep the interface the
 	#  same, but you can change the code itself. 
@@ -74,5 +79,5 @@ class Solver:
 		elif algo == "HMM MAP":
 			return self.hmm_viterbi(sentence)
 		else:
-			print "Unknown algo!"
-
+			print
+			"Unknown algo!"
