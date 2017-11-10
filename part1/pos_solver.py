@@ -18,7 +18,7 @@ pos = {}
 word = {}
 wordPos = {}
 transitions = np.zeros((12, 12), dtype=np.int_)
-posIDX = {"ADJ" : 0, "ADV" : 1, "ADP" : 2, "CONJ" : 3, "DET" : 4, "NOUN" : 5, "NUM" : 6, "PRON" : 7, "PRT" : 8, "VERB" : 9, "X" : 10, "." : 11}
+posIDX = {"adj" : 0, "adv" : 1, "adp" : 2, "conj" : 3, "det" : 4, "noun" : 5, "num" : 6, "pron" : 7, "prt" : 8, "verb" : 9, "x" : 10, "." : 11}
 
 
 # We've set up a suggested code structure, but feel free to change it. Just
