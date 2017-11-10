@@ -15,9 +15,10 @@ import math
 import numpy as np
 
 pos = {}
-word = {}
+words = {}
 wordPos = {}
 transitions = np.zeros((12, 12), dtype=np.int_)
+initial = {"adj" : 0, "adv" : 0, "adp" : 0, "conj" : 0, "det" : 0, "noun" : 0, "num" : 0, "pron" : 0, "prt" : 0, "verb" : 0, "x" : 0, "." : 0}
 posIDX = {"adj" : 0, "adv" : 1, "adp" : 2, "conj" : 3, "det" : 4, "noun" : 5, "num" : 6, "pron" : 7, "prt" : 8, "verb" : 9, "x" : 10, "." : 11}
 
 
@@ -38,11 +39,11 @@ class Solver:
 		for i in range(0, len(data), 1):
 			for j in range(0, len(data[i][0]), 1):
 				# part of speech and its count
-				posKey = key = data[i][1][j]
-				pos[key] = pos[key] + 1 if key in pos else 1
+				posKey = data[i][1][j]
+				pos[posKey] = pos[posKey] + 1 if posKey in pos else 1
 				# word and its count
-				wordKey = key = data[i][0][j]
-				word[key] = word[key] + 1 if key in word else 1
+				wordKey = data[i][0][j]
+				words[wordKey] = words[wordKey] + 1 if wordKey in word else 1
 				# word & parts of speech and its count
 				if wordKey in wordPos:
 					posTag = wordPos[wordKey]
@@ -54,28 +55,34 @@ class Solver:
 				if j > 0:
 					prevPOS = data[i][1][j - 1]
 					transitions[posIDX[prevPOS], posIDX[posKey]] += 1
+				else:
+					initialPOS = data[i][1][j]
+					initial[initialPOS] += 1
+
+		for word in wordPos.keys():
+			words[word] = sum(wordPos[word].values)
+
 
 	# Functions for each algorithm.
 	#
 	def simplified(self, sentence):
-		for exemp in sentence:
-			for word_exemp in exemp[0]:
-				listPOS = []
-				max_prob = 0
-				max_POS = ''
-				# print word
-				for p in pos:
-					print p
-					if word_exemp in wordPos.keys():
-						if p in wordPos[word_exemp]:
-							a = wordPos[word_exemp][p]
-							b = pos[p]
-							c = sum(pos.values())
-							d = word[word_exemp]
-							e = sum(word.values())
-							simplifiedProb = ((a / b) * (b / c)) / (d / e)
+		listPOS = []
+		for word in sentence:
+			maxProb = 0
+			maxPOS = ''
+			# print word
+			for p in pos:
+				print p
+				if word in wordPos:
+					if p in wordPos[word]:
+						a = wordPos[word][p]
+						b = pos[p]
+						c = sum(pos.values())
+						d = word[word]
+						e = sum(word.values())
+						simplifiedProb = ((a / b) * (b / c)) / (d / e)
 
-		return [ "noun" ] * len(sentence)
+		return listPOS
 
 	def hmm_ve(self, sentence):
 		return ["noun"] * len(sentence)
