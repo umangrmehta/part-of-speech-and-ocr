@@ -58,7 +58,24 @@ class Solver:
 	# Functions for each algorithm.
 	#
 	def simplified(self, sentence):
-		return ["noun"] * len(sentence)
+		for exemp in sentence:
+			for word_exemp in exemp[0]:
+				listPOS = []
+				max_prob = 0
+				max_POS = ''
+				# print word
+				for p in pos:
+					print p
+					if word_exemp in wordPos.keys():
+						if p in wordPos[word_exemp]:
+							a = wordPos[word_exemp][p]
+							b = pos[p]
+							c = sum(pos.values())
+							d = word[word_exemp]
+							e = sum(word.values())
+							simplifiedProb = ((a / b) * (b / c)) / (d / e)
+
+		return [ "noun" ] * len(sentence)
 
 	def hmm_ve(self, sentence):
 		return ["noun"] * len(sentence)
