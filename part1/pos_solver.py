@@ -43,6 +43,10 @@ class Solver:
 				# part of speech and its count
 				posKey = data[i][1][j]
 				pos[posKey] = pos[posKey] + 1 if posKey in pos else 1
+				if not posKey in posIDX:
+					posIDX.append(posKey)
+					posIDX.sort()
+					initial[posKey] = 0
 				# word and its count
 				wordKey = data[i][0][j]
 				#words[wordKey] = words[wordKey] + 1 if wordKey in word else 1
