@@ -43,7 +43,7 @@ class Solver:
 				pos[posKey] = pos[posKey] + 1 if posKey in pos else 1
 				# word and its count
 				wordKey = data[i][0][j]
-				words[wordKey] = words[wordKey] + 1 if wordKey in word else 1
+				words[wordKey] = words[wordKey] + 1 if wordKey in words else 1
 				# word & parts of speech and its count
 				if wordKey in wordPos:
 					posTag = wordPos[wordKey]
@@ -60,7 +60,7 @@ class Solver:
 					initial[initialPOS] += 1
 
 		for word in wordPos.keys():
-			words[word] = sum(wordPos[word].values)
+			words[word] = sum(wordPos[word].values())
 
 
 	# Functions for each algorithm.
