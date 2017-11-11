@@ -19,9 +19,8 @@ words = {}
 wordPos = {}
 transitions = np.zeros((12, 12), dtype=np.int_)
 initial = {}
-posIDX = []
-#initial = {"adj" : 0, "adv" : 0, "adp" : 0, "conj" : 0, "det" : 0, "noun" : 0, "num" : 0, "pron" : 0, "prt" : 0, "verb" : 0, "x" : 0, "." : 0}
-#posIDX = {"adj" : 0, "adv" : 1, "adp" : 2, "conj" : 3, "det" : 4, "noun" : 5, "num" : 6, "pron" : 7, "prt" : 8, "verb" : 9, "x" : 10, "." : 11}
+initial = {"adj": 0, "adv": 0, "adp": 0, "conj": 0, "det": 0, "noun": 0, "num": 0, "pron": 0, "prt": 0, "verb": 0, "x": 0, ".": 0}
+posIDX = ["adj", "adv", "adp", "conj", "det", "noun", "num", "pron", "prt", "verb", "x", "."]
 
 
 # We've set up a suggested code structure, but feel free to change it. Just
