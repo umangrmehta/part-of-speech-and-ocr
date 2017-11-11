@@ -96,7 +96,7 @@ class Solver:
 							max_prob = simplifiedProb
 							max_POS = p
 						max_prob_final = max_prob
-						listPOS = listPOS.append(max_POS)
+						listPOS.append(max_POS)
 					#print "For '", word, "'the POS is ", max_POS_final, " with probability of", max_prob
 
 		return listPOS
