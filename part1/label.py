@@ -45,6 +45,7 @@ solver.train(train_data)
 
 print "Loading test data..."
 test_data = read_data(test_file)
+solver.solve(test_data)
 
 print "Testing classifiers..."
 scorer = Score()

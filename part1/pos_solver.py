@@ -18,8 +18,10 @@ pos = {}
 words = {}
 wordPos = {}
 transitions = np.zeros((12, 12), dtype=np.int_)
-initial = {"adj" : 0, "adv" : 0, "adp" : 0, "conj" : 0, "det" : 0, "noun" : 0, "num" : 0, "pron" : 0, "prt" : 0, "verb" : 0, "x" : 0, "." : 0}
-posIDX = {"adj" : 0, "adv" : 1, "adp" : 2, "conj" : 3, "det" : 4, "noun" : 5, "num" : 6, "pron" : 7, "prt" : 8, "verb" : 9, "x" : 10, "." : 11}
+initial = {}
+posIDX = []
+#initial = {"adj" : 0, "adv" : 0, "adp" : 0, "conj" : 0, "det" : 0, "noun" : 0, "num" : 0, "pron" : 0, "prt" : 0, "verb" : 0, "x" : 0, "." : 0}
+#posIDX = {"adj" : 0, "adv" : 1, "adp" : 2, "conj" : 3, "det" : 4, "noun" : 5, "num" : 6, "pron" : 7, "prt" : 8, "verb" : 9, "x" : 10, "." : 11}
 
 
 # We've set up a suggested code structure, but feel free to change it. Just
@@ -41,9 +43,13 @@ class Solver:
 				# part of speech and its count
 				posKey = data[i][1][j]
 				pos[posKey] = pos[posKey] + 1 if posKey in pos else 1
+				if not posKey in posIDX:
+					posIDX.append(posKey)
+					posIDX.sort()
+					initial[posKey] = 0
 				# word and its count
 				wordKey = data[i][0][j]
-				words[wordKey] = words[wordKey] + 1 if wordKey in words else 1
+				#words[wordKey] = words[wordKey] + 1 if wordKey in word else 1
 				# word & parts of speech and its count
 				if wordKey in wordPos:
 					posTag = wordPos[wordKey]
@@ -54,11 +60,10 @@ class Solver:
 
 				if j > 0:
 					prevPOS = data[i][1][j - 1]
-					transitions[posIDX[prevPOS], posIDX[posKey]] += 1
+					transitions[posIDX.index(prevPOS), posIDX.index(posKey)] += 1
 				else:
 					initialPOS = data[i][1][j]
 					initial[initialPOS] += 1
-
 		for word in wordPos.keys():
 			words[word] = sum(wordPos[word].values())
 
