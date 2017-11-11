@@ -86,6 +86,19 @@ class Solver:
 						d = word[word]
 						e = sum(word.values())
 						simplifiedProb = ((a / b) * (b / c)) / (d / e)
+						a = math.log(wordPos[word][p])
+						b = math.log(pos[p])
+						c = math.log(sum(pos.values()))
+						d = math.log(words[word])
+						e = math.log(sum(words.values()))
+						simplifiedProb = (((1 + a - b) + (b - c)) - (d - e))
+						#print "all probabilities:", simplifiedProb
+						if simplifiedProb > max_prob:
+							max_prob = simplifiedProb
+							max_POS = p
+						max_prob_final = max_prob
+						listPOS = listPOS.append(max_POS)
+					#print "For '", word, "'the POS is ", max_POS_final, " with probability of", max_prob
 
 		return listPOS
 
