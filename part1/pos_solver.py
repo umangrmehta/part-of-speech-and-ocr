@@ -55,10 +55,10 @@ class Solver:
 					wordPos[wordKey] = posDict
 
 				if j > 0:
-					prevPOS = train_data[i][1][j - 1]
+					prevPOS = data[i][1][j - 1]
 					transitions[posIDX.index(prevPOS), posIDX.index(posKey)] += 1
 				else:
-					initialPOS = train_data[i][1][j]
+					initialPOS = data[i][1][j]
 					initial[initialPOS] += 1
 		for word in wordPos.keys():
 			words[word] = sum(wordPos[word].values())
