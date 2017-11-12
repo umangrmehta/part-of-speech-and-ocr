@@ -13,6 +13,7 @@
 import random
 import math
 import numpy as np
+from operator import itemgetter 
 
 pos = {}
 words = {}
@@ -109,8 +110,33 @@ class Solver:
 		return posList
 
 	def hmm_viterbi(self, sentence):
-		return ["noun"] * len(sentence)
-
+		viterbi = {}
+		for wordCnt,word in enumerate(test_data[rowCnt][0]):
+			for pos in posIDX:
+				maxViterbi = 0
+				maxPos = ''
+				emissionProb = math.log(1 if not word in wordPos else 1 if not pos in wordPos[word] else wordPos[word][pos]/pos[pos])
+				if wordCnt == 0:
+					initialProb = math.log(initial[pos]) - math.log(sum(initial.values()))
+					matrixScore = emissionProb + initialProb
+					viterbi[(posIDX.index(pos),wordCnt)] = ('None',matrixScore)
+				else:
+					for prevPos in posIDX:
+						transValue = 1 if (transitions[posIDX.index(prevPos),posIDX.index(pos)]) <= 1 else (transitions[posIDX.index(prevPos),posIDX.index(pos)])
+						transProb = math.log(transValue) - math.log(pos[prevPos])
+						interViterbi = (viterbi[posIDX.index(prevPos),wordCnt-1][1] + transProb)*-1
+						if interViterbi > maxViterbi:
+							maxPos = prevPos
+							maxViterbi = interViterbi
+					viterbi[(posIDX.index(pos),wordCnt)] = (maxPos,maxViterbi + emissionProb)
+		returnList = [maxPos]
+		for wordCnt in range(len(test_data[rowCnt][0])-1,-1,-1):
+			posList = []
+			for key, value in viterbi.items():   # iter on both keys and values
+				if key[1] == wordCnt:
+					posList.append(value)
+			maxPos = max(posList,key=itemgetter(1))[0]
+			returnList.insert(0,maxPos)
 	# This solve() method is called by label.py, so you should keep the interface the
 	#  same, but you can change the code itself. 
 	# It should return a list of part-of-speech labelings of the sentence, one
