@@ -45,7 +45,7 @@ solver.train(train_data)
 
 print "Loading test data..."
 test_data = read_data(test_file)
-solver.solve(test_data)
+# solver.solve(test_data)
 
 print "Testing classifiers..."
 scorer = Score()
@@ -56,7 +56,7 @@ for (s, gt) in test_data:
         
     # run all algorithms on the sentence
     for (algo, label) in zip(Algorithms, Algorithm_labels):
-        outputs[label] = solver.solve( algo, s) 
+        outputs[label] = solver.solve(algo, s)
 
     posteriors = { o: solver.posterior( s, outputs[o] ) for o in outputs }
     
