@@ -13,16 +13,7 @@
 import random
 import math
 import numpy as np
-from operator import itemgetter 
-
-pos = {}
-words = {}
-wordPos = {}
-transitions = np.zeros((12, 12), dtype=np.int_)
-initial = {}
-initial = {"adj": 0, "adv": 0, "adp": 0, "conj": 0, "det": 0, "noun": 0, "num": 0, "pron": 0, "prt": 0, "verb": 0, "x": 0, ".": 0}
-posIDX = ["adj", "adv", "adp", "conj", "det", "noun", "num", "pron", "prt", "verb", "x", "."]
-viterbiDT = np.dtype([('prevPOS', '<S20'), ('viterbiScore', np.float_)])
+from operator import itemgetter
 
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
@@ -31,6 +22,16 @@ viterbiDT = np.dtype([('prevPOS', '<S20'), ('viterbiScore', np.float_)])
 class Solver:
 	# Calculate the log of the posterior probability of a given sentence
 	#  with a given part-of-speech labeling
+	def __init__(self):
+		self.pos = {}
+		self.words = {}
+		self.totalWords = 0
+		self.wordPos = {}
+		self.transitions = np.zeros((12, 12), dtype=np.int_)
+		self.initial = {}
+		self.initial = {"adj": 0, "adv": 0, "adp": 0, "conj": 0, "det": 0, "noun": 0, "num": 0, "pron": 0, "prt": 0, "verb": 0, "x": 0, ".": 0}
+		self.posIDX = ["adj", "adv", "adp", "conj", "det", "noun", "num", "pron", "prt", "verb", "x", "."]
+
 	def posterior(self, sentence, label):
 		return 0
 
@@ -42,29 +43,31 @@ class Solver:
 			for j in range(0, len(data[i][0]), 1):
 				# part of speech and its count
 				posKey = data[i][1][j]
-				pos[posKey] = pos[posKey] + 1 if posKey in pos else 1
-				if not posKey in posIDX:
-					posIDX.append(posKey)
-					posIDX.sort()
-					initial[posKey] = 0
+				self.pos[posKey] = self.pos[posKey] + 1 if posKey in self.pos else 1
+				if not posKey in self.posIDX:
+					self.posIDX.append(posKey)
+					self.posIDX.sort()
+					self.initial[posKey] = 0
 				# word and its count
 				wordKey = data[i][0][j]
 				# word & parts of speech and its count
-				if wordKey in wordPos:
-					posTag = wordPos[wordKey]
+				if wordKey in self.wordPos:
+					posTag = self.wordPos[wordKey]
 					posTag[posKey] = posTag[posKey] + 1 if posKey in posTag else 1
 				else:
 					posDict = {posKey: 1}
-					wordPos[wordKey] = posDict
+					self.wordPos[wordKey] = posDict
 
 				if j > 0:
 					prevPOS = data[i][1][j - 1]
-					transitions[posIDX.index(prevPOS), posIDX.index(posKey)] += 1
+					self.transitions[self.posIDX.index(prevPOS), self.posIDX.index(posKey)] += 1
 				else:
 					initialPOS = data[i][1][j]
-					initial[initialPOS] += 1
-		for word in wordPos.keys():
-			words[word] = sum(wordPos[word].values())
+					self.initial[initialPOS] += 1
+		for word in self.wordPos.keys():
+			self.words[word] = sum(self.wordPos[word].values())
+
+		self.totalWords = sum(self.words.values())
 
 
 	# Functions for each algorithm.
@@ -74,12 +77,12 @@ class Solver:
 		for word in sentence:
 			maxProb = 0.0
 			maxPOS = ''
-			for p in pos:
-				if p in posIDX:
-					a = ((wordPos[word][p] + 1 if p in wordPos[word] else 1) if word in wordPos else 1) * 1.0
-					b = (pos[p] + len(words)) * 1.0
-					c = (pos[p] + 1) * 1.0
-					d = (sum(pos.values()) + 1) * 1.0
+			for p in self.pos:
+				if p in self.posIDX:
+					a = ((self.wordPos[word][p] + 1 if p in self.wordPos[word] else 1) if word in self.wordPos else 1) * 1.0
+					b = (self.pos[p] + len(self.words)) * 1.0
+					c = (self.pos[p] + 1) * 1.0
+					d = (sum(self.pos.values()) + 1) * 1.0
 					simplifiedProb = ((a / b) * (c / d))
 					if simplifiedProb > maxProb:
 						maxProb = simplifiedProb
@@ -92,18 +95,18 @@ class Solver:
 		prevState = np.zeros([12], np.float_)
 		currentState = np.zeros([12], np.float_)
 		for idx, word in enumerate(sentence):
-			for currentPOS in posIDX:
-				emission = 1.0 * (wordPos[word][currentPOS] + 1 if word in wordPos and currentPOS in wordPos[word] else 1) / (pos[currentPOS] + len(words))
+			for currentPOS in self.posIDX:
+				emission = 1.0 * self.wordPos[word][currentPOS] / self.pos[currentPOS] if word in self.wordPos and currentPOS in self.wordPos[word] else 1.0 / (2.0 * self.totalWords)
 				prevStateSum = 0
 				if idx == 0:
-					prevStateSum = 1.0 * initial[currentPOS] / sum(initial.values())
+					prevStateSum = 1.0 * self.initial[currentPOS] / sum(self.initial.values())
 				else:
-					for prevPOS in posIDX:
-						transition = 1.0 * transitions[posIDX.index(prevPOS), posIDX.index(currentPOS)] / pos[prevPOS]
-						prevStateSum += transition * prevState[posIDX.index(prevPOS)]
-				currentState[posIDX.index(currentPOS)] = prevStateSum * emission
+					for prevPOS in self.posIDX:
+						transition = 1.0 * self.transitions[self.posIDX.index(prevPOS), self.posIDX.index(currentPOS)] / self.pos[prevPOS]
+						prevStateSum += transition * prevState[self.posIDX.index(prevPOS)]
+				currentState[self.posIDX.index(currentPOS)] = prevStateSum * emission
 
-			posList.append(posIDX[np.argmax(currentState)])
+			posList.append(self.posIDX[np.argmax(currentState)])
 			prevState = currentState
 			currentState = np.zeros([12], np.float_)
 
@@ -114,31 +117,31 @@ class Solver:
 		viterbi = np.empty([12, len(sentence)], dtype=np.float_)
 		maxPrevPOS = np.empty([12, len(sentence)], dtype='S4')
 		for wordIDX, word in enumerate(sentence):
-			for currentPOS in posIDX:
+			for currentPOS in self.posIDX:
 				maxViterbi = - float('inf')
 				maxPOS = ''
-				emissionProb = math.log(1.0 * (wordPos[word][currentPOS] + 1 if word in wordPos and currentPOS in wordPos[word] else 1) / (pos[currentPOS] + len(words)))
+				emissionProb = math.log(1.0 * self.wordPos[word][currentPOS] / self.pos[currentPOS] if word in self.wordPos and currentPOS in self.wordPos[word] else 1.0 / (2.0 * self.totalWords))
 				if wordIDX == 0:
-					initialProb = math.log(initial[currentPOS]) - math.log(sum(initial.values()))
+					initialProb = math.log(self.initial[currentPOS]) - math.log(sum(self.initial.values()))
 					matrixScore = emissionProb + initialProb
-					viterbi[(posIDX.index(currentPOS), wordIDX)] = matrixScore
-					maxPrevPOS[(posIDX.index(currentPOS), wordIDX)] = ''
+					viterbi[(self.posIDX.index(currentPOS), wordIDX)] = matrixScore
+					maxPrevPOS[(self.posIDX.index(currentPOS), wordIDX)] = ''
 				else:
-					for prevPOS in posIDX:
-						transValue = 1 if (transitions[posIDX.index(prevPOS), posIDX.index(currentPOS)]) <= 1 else (transitions[posIDX.index(prevPOS), posIDX.index(currentPOS)])
-						transProb = math.log(transValue) - math.log(pos[prevPOS])
-						interViterbi = (viterbi[posIDX.index(prevPOS), wordIDX - 1] + transProb)
+					for prevPOS in self.posIDX:
+						transValue = 1 if (self.transitions[self.posIDX.index(prevPOS), self.posIDX.index(currentPOS)]) <= 1 else (self.transitions[self.posIDX.index(prevPOS), self.posIDX.index(currentPOS)])
+						transProb = math.log(transValue) - math.log(self.pos[prevPOS])
+						interViterbi = (viterbi[self.posIDX.index(prevPOS), wordIDX - 1] + transProb)
 						if interViterbi > maxViterbi:
 							maxPOS = prevPOS
 							maxViterbi = interViterbi
 					# print maxPOS
-					viterbi[(posIDX.index(currentPOS), wordIDX)] = maxViterbi + emissionProb
-					maxPrevPOS[(posIDX.index(currentPOS), wordIDX)] = maxPOS
+					viterbi[(self.posIDX.index(currentPOS), wordIDX)] = maxViterbi + emissionProb
+					maxPrevPOS[(self.posIDX.index(currentPOS), wordIDX)] = maxPOS
 
-		lastPOS = posIDX[np.argmax(viterbi, axis=0)[-1]]
+		lastPOS = self.posIDX[np.argmax(viterbi, axis=0)[-1]]
 		returnList = [lastPOS]
 		for wordIDX in range(len(sentence) - 1, 0, -1):
-			prevPOS = maxPrevPOS[posIDX.index(lastPOS), wordIDX]
+			prevPOS = maxPrevPOS[self.posIDX.index(lastPOS), wordIDX]
 			returnList.insert(0, prevPOS)
 			lastPOS = prevPOS
 			# posList = []
