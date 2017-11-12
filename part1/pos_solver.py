@@ -10,10 +10,8 @@
 # Put your report here!!
 ####
 
-import random
 import math
 import numpy as np
-from operator import itemgetter
 
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
@@ -79,11 +77,12 @@ class Solver:
 			maxPOS = ''
 			for p in self.pos:
 				if p in self.posIDX:
-					a = ((self.wordPos[word][p] + 1 if p in self.wordPos[word] else 1) if word in self.wordPos else 1) * 1.0
+					# a = ((self.wordPos[word][p] + 1 if p in self.wordPos[word] else 1) if word in self.wordPos else 1) * 1.0
+					a = 1.0 * self.wordPos[word][p] / self.pos[p] if word in self.wordPos and p in self.wordPos[word] else 1.0 / (2.0 * self.totalWords)
 					b = (self.pos[p] + len(self.words)) * 1.0
 					c = (self.pos[p] + 1) * 1.0
 					d = (sum(self.pos.values()) + 1) * 1.0
-					simplifiedProb = ((a / b) * (c / d))
+					simplifiedProb = ((a) * (c / d))
 					if simplifiedProb > maxProb:
 						maxProb = simplifiedProb
 						maxPOS = p
