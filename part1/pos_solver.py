@@ -22,7 +22,7 @@ transitions = np.zeros((12, 12), dtype=np.int_)
 initial = {}
 initial = {"adj": 0, "adv": 0, "adp": 0, "conj": 0, "det": 0, "noun": 0, "num": 0, "pron": 0, "prt": 0, "verb": 0, "x": 0, ".": 0}
 posIDX = ["adj", "adv", "adp", "conj", "det", "noun", "num", "pron", "prt", "verb", "x", "."]
-
+viterbiDT = np.dtype([('prevPOS', '<S20'), ('viterbiScore', np.float_)])
 
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
@@ -93,7 +93,7 @@ class Solver:
 		currentState = np.zeros([12], np.float_)
 		for idx, word in enumerate(sentence):
 			for currentPOS in posIDX:
-				emmission = 1.0 * (wordPos[word][currentPOS] + 1 if word in wordPos and currentPOS in wordPos[word] else 1) / (pos[currentPOS] + len(words))
+				emission = 1.0 * (wordPos[word][currentPOS] + 1 if word in wordPos and currentPOS in wordPos[word] else 1) / (pos[currentPOS] + len(words))
 				prevStateSum = 0
 				if idx == 0:
 					prevStateSum = 1.0 * initial[currentPOS] / sum(initial.values())
@@ -101,7 +101,7 @@ class Solver:
 					for prevPOS in posIDX:
 						transition = 1.0 * transitions[posIDX.index(prevPOS), posIDX.index(currentPOS)] / pos[prevPOS]
 						prevStateSum += transition * prevState[posIDX.index(prevPOS)]
-				currentState[posIDX.index(currentPOS)] = prevStateSum * emmission
+				currentState[posIDX.index(currentPOS)] = prevStateSum * emission
 
 			posList.append(posIDX[np.argmax(currentState)])
 			prevState = currentState
@@ -110,33 +110,45 @@ class Solver:
 		return posList
 
 	def hmm_viterbi(self, sentence):
-		viterbi = {}
-		for wordCnt,word in enumerate(test_data[rowCnt][0]):
-			for pos in posIDX:
-				maxViterbi = 0
-				maxPos = ''
-				emissionProb = math.log(1 if not word in wordPos else 1 if not pos in wordPos[word] else wordPos[word][pos]/pos[pos])
-				if wordCnt == 0:
-					initialProb = math.log(initial[pos]) - math.log(sum(initial.values()))
+		# viterbi = {}
+		viterbi = np.empty([12, len(sentence)], dtype=np.float_)
+		maxPrevPOS = np.empty([12, len(sentence)], dtype='S4')
+		for wordIDX, word in enumerate(sentence):
+			for currentPOS in posIDX:
+				maxViterbi = - float('inf')
+				maxPOS = ''
+				emissionProb = math.log(1.0 * (wordPos[word][currentPOS] + 1 if word in wordPos and currentPOS in wordPos[word] else 1) / (pos[currentPOS] + len(words)))
+				if wordIDX == 0:
+					initialProb = math.log(initial[currentPOS]) - math.log(sum(initial.values()))
 					matrixScore = emissionProb + initialProb
-					viterbi[(posIDX.index(pos),wordCnt)] = ('None',matrixScore)
+					viterbi[(posIDX.index(currentPOS), wordIDX)] = matrixScore
+					maxPrevPOS[(posIDX.index(currentPOS), wordIDX)] = ''
 				else:
-					for prevPos in posIDX:
-						transValue = 1 if (transitions[posIDX.index(prevPos),posIDX.index(pos)]) <= 1 else (transitions[posIDX.index(prevPos),posIDX.index(pos)])
-						transProb = math.log(transValue) - math.log(pos[prevPos])
-						interViterbi = (viterbi[posIDX.index(prevPos),wordCnt-1][1] + transProb)*-1
+					for prevPOS in posIDX:
+						transValue = 1 if (transitions[posIDX.index(prevPOS), posIDX.index(currentPOS)]) <= 1 else (transitions[posIDX.index(prevPOS), posIDX.index(currentPOS)])
+						transProb = math.log(transValue) - math.log(pos[prevPOS])
+						interViterbi = (viterbi[posIDX.index(prevPOS), wordIDX - 1] + transProb)
 						if interViterbi > maxViterbi:
-							maxPos = prevPos
+							maxPOS = prevPOS
 							maxViterbi = interViterbi
-					viterbi[(posIDX.index(pos),wordCnt)] = (maxPos,maxViterbi + emissionProb)
-		returnList = [maxPos]
-		for wordCnt in range(len(test_data[rowCnt][0])-1,-1,-1):
-			posList = []
-			for key, value in viterbi.items():   # iter on both keys and values
-				if key[1] == wordCnt:
-					posList.append(value)
-			maxPos = max(posList,key=itemgetter(1))[0]
-			returnList.insert(0,maxPos)
+					# print maxPOS
+					viterbi[(posIDX.index(currentPOS), wordIDX)] = maxViterbi + emissionProb
+					maxPrevPOS[(posIDX.index(currentPOS), wordIDX)] = maxPOS
+
+		lastPOS = posIDX[np.argmax(viterbi, axis=0)[-1]]
+		returnList = [lastPOS]
+		for wordIDX in range(len(sentence) - 1, 0, -1):
+			prevPOS = maxPrevPOS[posIDX.index(lastPOS), wordIDX]
+			returnList.insert(0, prevPOS)
+			lastPOS = prevPOS
+			# posList = []
+			# for key, value in viterbi.items():   # iter on both keys and values
+			# 	if key[1] == wordIDX:
+			# 		posList.append(value)
+			# maxPOS = max(posList, key=itemgetter(1))[0]
+			# returnList.insert(0, maxPOS)
+		return returnList
+
 	# This solve() method is called by label.py, so you should keep the interface the
 	#  same, but you can change the code itself. 
 	# It should return a list of part-of-speech labelings of the sentence, one
