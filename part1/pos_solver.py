@@ -48,7 +48,6 @@ class Solver:
 					initial[posKey] = 0
 				# word and its count
 				wordKey = data[i][0][j]
-				#words[wordKey] = words[wordKey] + 1 if wordKey in word else 1
 				# word & parts of speech and its count
 				if wordKey in wordPos:
 					posTag = wordPos[wordKey]
@@ -72,37 +71,42 @@ class Solver:
 	def simplified(self, sentence):
 		listPOS = []
 		for word in sentence:
-			maxProb = 0
+			maxProb = 0.0
 			maxPOS = ''
-			# print word
 			for p in pos:
-				print p
-				if word in wordPos:
-					if p in wordPos[word]:
-						a = wordPos[word][p]
-						b = pos[p]
-						c = sum(pos.values())
-						d = word[word]
-						e = sum(word.values())
-						simplifiedProb = ((a / b) * (b / c)) / (d / e)
-						a = math.log(wordPos[word][p])
-						b = math.log(pos[p])
-						c = math.log(sum(pos.values()))
-						d = math.log(words[word])
-						e = math.log(sum(words.values()))
-						simplifiedProb = (((1 + a - b) + (b - c)) - (d - e))
-						#print "all probabilities:", simplifiedProb
-						if simplifiedProb > max_prob:
-							max_prob = simplifiedProb
-							max_POS = p
-						max_prob_final = max_prob
-						listPOS.append(max_POS)
-					#print "For '", word, "'the POS is ", max_POS_final, " with probability of", max_prob
-
+				if p in posIDX:
+					a = ((wordPos[word][p] + 1 if p in wordPos[word] else 1) if word in wordPos else 1) * 1.0
+					b = (pos[p] + len(words)) * 1.0
+					c = (pos[p] + 1) * 1.0
+					d = (sum(pos.values()) + 1) * 1.0
+					simplifiedProb = ((a / b) * (c / d))
+					if simplifiedProb > maxProb:
+						maxProb = simplifiedProb
+						maxPOS = p
+			listPOS.append(maxPOS)
 		return listPOS
 
 	def hmm_ve(self, sentence):
-		return ["noun"] * len(sentence)
+		posList = []
+		prevState = np.zeros([12], np.float_)
+		currentState = np.zeros([12], np.float_)
+		for idx, word in enumerate(sentence):
+			for currentPOS in posIDX:
+				emmission = 1.0 * (wordPos[word][currentPOS] + 1 if word in wordPos and currentPOS in wordPos[word] else 1) / (pos[currentPOS] + len(words))
+				prevStateSum = 0
+				if idx == 0:
+					prevStateSum = 1.0 * initial[currentPOS] / sum(initial.values())
+				else:
+					for prevPOS in posIDX:
+						transition = 1.0 * transitions[posIDX.index(prevPOS), posIDX.index(currentPOS)] / pos[prevPOS]
+						prevStateSum += transition * prevState[posIDX.index(prevPOS)]
+				currentState[posIDX.index(currentPOS)] = prevStateSum * emmission
+
+			posList.append(posIDX[np.argmax(currentState)])
+			prevState = currentState
+			currentState = np.zeros([12], np.float_)
+
+		return posList
 
 	def hmm_viterbi(self, sentence):
 		return ["noun"] * len(sentence)
