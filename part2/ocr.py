@@ -9,11 +9,22 @@
 
 from PIL import Image, ImageDraw, ImageFont
 import sys
-import operator 
+import numpy as np
+
+letPtnTrn = {}
+letPtnTst = {}
+transitions = np.zeros((12, 12), dtype=np.int_)
 
 CHARACTER_WIDTH=14
 CHARACTER_HEIGHT=25
 
+def read_data(fname):
+    exemplars = []
+    file = open(fname, 'r');
+    for line in file:
+        data = tuple([line.lower()])
+        print (data)
+    return exemplars
 
 def load_letters(fname):
     im = Image.open(fname)
@@ -33,18 +44,20 @@ def load_training_letters(fname):
 
 #####
 # main program
-(train_img_fname, train_txt_fname, test_img_fname) = sys.argv[1:]
+(train_img_fname, train_txt_fname, test_img_fname, train_file) = sys.argv[1:]
+train_data = read_data(train_file)
 train_letters = load_training_letters(train_img_fname)
 test_letters = load_letters(test_img_fname)
 #print train_letters['a']
 ## Below is just some sample code to show you how the functions above work. 
 # You can delete them and put your own code here!
-letPtnTrn = {}
-letPtnTst = {}
-
 train_arr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
 str=""
 count = 0
+
+#for sentence in train_data:
+#    for words in sentence[0]:
+#        for letter in len()
 
 for i in train_arr:
     letter = train_letters[i]
@@ -59,16 +72,16 @@ for word in test_letters:
     letter = [item for row in word for item in row]
     tempDict = {}
     for alphabet in letPtnTrn:
-        matchAlpha = 0
+        matchAlpha = 1
         for idx in range(len(letPtnTrn[alphabet])):
             if letPtnTrn[alphabet][idx] == letter[idx]:
-                matchAlpha += 1
+                matchAlpha *= 0.8
+            else:
+                matchAlpha *= 0.2
         tempDict[alphabet] = matchAlpha
     testAplha["".join([ r for r in letter])] = tempDict
 
-#print (testAplha['00000100000000000000000000000000000000000000000000000000000000000000000111111111110000010001001100000110100001000001100000011000011000100100000110001000000001111110000000011000100000000110001000000001100000000000001000000000000110000001000001100000000001111111111100000000000000000000000000000000000000000000000100000000000000000000000000000000000000'])
-#print (testAplha['00000000000000000000000000000000000000000000000000000000000000000000000001111011110000000011000000000000010000000000000100000000000001000000000000010000000000000100000000000001000000000000000000000000000100000000000011000000000000010000000000001100000000011111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000'])
-
+#print (testAplha)
 for letter in testAplha:
     print (max(testAplha[letter], key=testAplha[letter].get))
 # Each training letter is now stored as a list of characters, where black
