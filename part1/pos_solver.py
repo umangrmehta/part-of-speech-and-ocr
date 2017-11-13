@@ -26,25 +26,23 @@ class Solver:
 		self.totalWords = 0
 		self.wordPos = {}
 		self.transitions = np.zeros((12, 12), dtype=np.int_)
-		self.initial = {}
 		self.initial = {"adj": 0, "adv": 0, "adp": 0, "conj": 0, "det": 0, "noun": 0, "num": 0, "pron": 0, "prt": 0, "verb": 0, "x": 0, ".": 0}
 		self.posIDX = ["adj", "adv", "adp", "conj", "det", "noun", "num", "pron", "prt", "verb", "x", "."]
 
 	def posterior(self, sentence, label):
-            listPostProb = []
-            sumOfpostProb = 0
-            for i in range(0,len(sentence)):
-                postProb = 0
-                word = sentence[i]
-                p = label[i]
-                a = math.log(1.0 * self.wordPos[word][p] / self.pos[p] if word in self.wordPos and p in self.wordPos[word] else 1.0 / (2.0 * self.totalWords))
-                b = math.log(self.pos[p] + 1)
-                c = math.log((sum(self.pos.values()) + 1) * 1.0)
-                d = math.log(self.words[word] if word in self.words else 1)
-                e = math.log(self.totalWords if word in self.words else 2 * self.totalWords)
-                postProb = (a + (b - c))
-                sumOfpostProb += postProb
-            return sumOfpostProb
+		sumOfpostProb = 0
+		for i in range(0,len(sentence)):
+			postProb = 0
+			word = sentence[i]
+			p = label[i]
+			a = math.log(1.0 * self.wordPos[word][p] / self.pos[p] if word in self.wordPos and p in self.wordPos[word] else 1.0 / (2.0 * self.totalWords))
+			b = math.log(self.pos[p] + 1)
+			c = math.log((sum(self.pos.values()) + 1) * 1.0)
+			d = math.log(self.words[word] if word in self.words else 1)
+			e = math.log(self.totalWords if word in self.words else 2 * self.totalWords)
+			postProb = (a + (b - c))
+			sumOfpostProb += postProb
+		return sumOfpostProb
 
 	# Do the training!
 	#
@@ -123,7 +121,6 @@ class Solver:
 		return posList
 
 	def hmm_viterbi(self, sentence):
-		# viterbi = {}
 		viterbi = np.empty([12, len(sentence)], dtype=np.float_)
 		maxPrevPOS = np.empty([12, len(sentence)], dtype='S4')
 		for wordIDX, word in enumerate(sentence):
@@ -154,12 +151,6 @@ class Solver:
 			prevPOS = maxPrevPOS[self.posIDX.index(lastPOS), wordIDX]
 			returnList.insert(0, prevPOS)
 			lastPOS = prevPOS
-			# posList = []
-			# for key, value in viterbi.items():   # iter on both keys and values
-			# 	if key[1] == wordIDX:
-			# 		posList.append(value)
-			# maxPOS = max(posList, key=itemgetter(1))[0]
-			# returnList.insert(0, maxPOS)
 		return returnList
 
 	# This solve() method is called by label.py, so you should keep the interface the

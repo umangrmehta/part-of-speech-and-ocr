@@ -12,81 +12,131 @@ import sys
 import numpy as np
 import re
 
-letPtnTrn = {}
+bitmaps = {}
 letPtnTst = {}
 
 train_text = "SAAS PREFACE If a preface is a light which should serve to illumine the contents of a volume, I choose, not words, but human figures to illustrate this little book intended to enter families where children are growing up. I therefore recall here, as an eloquent symbol, Helen Keller and Mrs. Anne Sullivan Macy, who are, by their example, both teachers to myself and, before the world, living documents of the miracle in education. In fact, Helen Keller is a marvelous example of the phenomenon common to all human beings the possibility of the liberation of the imprisoned spirit of man by the education of the senses. Here lies the basis of the method of education of which the book gives a succinct idea. If one only of the senses sufficed to make of Helen Keller a woman of exceptional culture and a writer, who better than she proves the potency of that method of education which builds on the senses? If Helen Keller attained through exquisite natural gifts to an elevated conception of the world, who better than she proves that in the inmost self of man lies the spirit ready to reveal itself? Helen, clasp to your heart these little children, since they, above all others, will understand you. They are your younger brothers when, with bandaged eyes and in silence, they touch with their little hands, profound impressions rise in their consciousness, and they exclaim with a new form of happiness see with my hands. They alone, then, can fully understand the drama of the mysterious privilege your soul has known. When, in darkness and in silence, their spirit left free to expand, their intellectual energy redoubled, they become able to read and write without having learnt, almost as it were by intuition, they, only they, can understand in part the ecstasy which God granted you on the luminous path of learning. Maria Montessori."
 
-train_arr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
-transitions = np.zeros((len(train_arr), len(train_arr)), dtype=np.int_)
+characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
+transitions = np.zeros((len(characters), len(characters)), dtype=np.int_)
+charCount = {}
+initial = {}
+for c in characters:
+	initial[c] = 0
+	charCount[c] = 0
 
-CHARACTER_WIDTH=14
-CHARACTER_HEIGHT=25
+file = open('cleaned.txt', 'r');
+for line in file:
+	for ltIDX in range(len(line)):
+		if ltIDX > 0:
+			if line[ltIDX - 1] not in characters or line[ltIDX] not in characters:
+				ltIDX += 1
+			else:
+				transitions[characters.index(line[ltIDX - 1]), characters.index(line[ltIDX])] += 1
+
+CHARACTER_WIDTH = 14
+CHARACTER_HEIGHT = 25
+
 
 def load_letters(fname):
-    im = Image.open(fname)
-    px = im.load()
-    (x_size, y_size) = im.size
-    #print (im.size)
-    #print (int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH)
-    result = []
-    for x_beg in range(0, int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH, CHARACTER_WIDTH):
-        result += [ [ "".join([ '1' if px[x, y] < 1 else '0' for x in range(x_beg, x_beg+CHARACTER_WIDTH) ]) for y in range(0, CHARACTER_HEIGHT) ], ]
-    return result
+	im = Image.open(fname)
+	px = im.load()
+	(x_size, y_size) = im.size
+	# print (im.size)
+	# print (int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH)
+	result = []
+	for x_beg in range(0, int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH, CHARACTER_WIDTH):
+		result += [["".join(['1' if px[x, y] < 1 else '0' for x in range(x_beg, x_beg + CHARACTER_WIDTH)]) for y in range(0, CHARACTER_HEIGHT)], ]
+	return result
+
 
 def load_training_letters(fname):
-    TRAIN_LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
-    letter_images = load_letters(fname)
-    return { TRAIN_LETTERS[i]: letter_images[i] for i in range(0, len(TRAIN_LETTERS) ) }
+	TRAIN_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
+	letter_images = load_letters(fname)
+	return {TRAIN_LETTERS[i]: letter_images[i] for i in range(0, len(TRAIN_LETTERS))}
+
 
 #####
 # main program
 (train_img_fname, train_txt_fname, test_img_fname) = sys.argv[1:]
 train_letters = load_training_letters(train_img_fname)
 test_letters = load_letters(test_img_fname)
-#print train_letters['a']
-## Below is just some sample code to show you how the functions above work. 
+# print train_letters['a']
+## Below is just some sample code to show you how the functions above work.
 # You can delete them and put your own code here!
 
-str=""
+str = ""
 count = 0
 
 for ltIDX in range(len(train_text)):
-    if ltIDX > 0:
-        transitions[train_arr.index(train_text[ltIDX - 1]), train_arr.index(train_text[ltIDX])] += 1
+	if ltIDX > 0:
+		transitions[characters.index(train_text[ltIDX - 1]), characters.index(train_text[ltIDX])] += 1
 
-for i in train_arr:
-    letter = train_letters[i]
-    letterList = []
-    for x in range(len(letter)):
-        for y in range(len(letter[0])):
-                letterList.append(letter[x][y])
-    letPtnTrn[i] = letterList
+for i in characters:
+	letter = train_letters[i]
+	letterList = []
+	for x in range(len(letter)):
+		for y in range(len(letter[0])):
+			letterList.append(letter[x][y])
+	bitmaps[i] = letterList
 
-testAplha = {}
-for word in test_letters:
-    letter = [item for row in word for item in row]
-    tempDict = {}
-    for alphabet in letPtnTrn:
-        matchAlpha = 0
-        for idx in range(len(letPtnTrn[alphabet])):
-            if letPtnTrn[alphabet][idx] == letter[idx]:
-                matchAlpha += 1
-        tempDict[alphabet] = matchAlpha / (14.0 * 25.0)
-    testAplha["".join([ r for r in letter])] = tempDict
 
-for word in test_letters:
-    letter = [item for row in word for item in row]
-    #print max(testAplha["".join([ r for r in letter])], key=testAplha["".join([ r for r in letter])].get)
+def simplified(sentence):
+	charList = []
+	for charSegment in sentence:
+		flatSegment = [item for row in charSegment for item in row]
+		maxProb = 0.0
+		maxPOS = ''
+		for currentChar in bitmaps:
+			matchAlpha = 0
+			for idx in range(len(bitmaps[c])):
+				if bitmaps[currentChar][idx] == flatSegment[idx]:
+					matchAlpha += 1
+			simplifiedProb = matchAlpha / (14.0 * 25.0)
+			if simplifiedProb > maxProb:
+				maxProb = simplifiedProb
+				maxPOS = currentChar
+
+		charList.append(maxPOS)
+	print "".join(charList)
+	return charList
+
+
+def hmm_ve(sentence):
+	charList = []
+	prevState = np.zeros([72], np.float_)
+	currentState = np.zeros([72], np.float_)
+	for idx, charSegment in enumerate(sentence):
+		flatSegment = [item for row in charSegment for item in row]
+		for currentChar in characters:
+			matchAlpha = 0
+			for idx in range(len(bitmaps[currentChar])):
+				if bitmaps[currentChar][idx] == flatSegment[idx]:
+					matchAlpha += 1
+			emission = matchAlpha / (14.0 * 25.0)
+			prevStateSum = 0
+			if idx == 0:
+				prevStateSum = 1.0 * initial[currentChar] / sum(initial.values())
+			else:
+				for prevChar in characters:
+					transition = 1.0 * transitions[characters.index(prevChar), characters.index(currentChar)] / charCount[prevChar]
+					prevStateSum += transition * prevState[characters.index(prevChar)]
+			currentState[characters.index(currentChar)] = prevStateSum * emission
+
+		charList.append(characters[np.argmax(currentState)])
+		prevState = currentState
+		currentState = np.zeros([12], np.float_)
+
+	return charList
+simplified(test_letters)
+
+
 # Each training letter is now stored as a list of characters, where black
 #  dots are represented by *'s and white dots are spaces. For example,
 #  here's what "a" looks like:
-#print ("\n".join([ r for r in train_letters['a'] ]))
+# print ("\n".join([ r for r in train_letters['a'] ]))
 
 # Same with test letters. Here's what the third letter of the test data
 #  looks like:
-#for cnt in range(len(test_letters)):
+# for cnt in range(len(test_letters)):
 #    print ("\n".join([ r for r in test_letters[cnt] ]))
-
-#print ("\n".join([ r for r in test_letters[19] ]))
-#print ("\n".join([ r for r in test_letters[23] ]))
