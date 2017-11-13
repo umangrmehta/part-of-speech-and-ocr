@@ -1,7 +1,7 @@
 ###################################
 # CS B551 Fall 2017, Assignment #3
 #
-# Your names and user ids:
+# Your names and user ids: aybhimdi-mehtau-vsriniv-a3
 #
 # (Based on skeleton code by D. Crandall)
 #
@@ -31,7 +31,20 @@ class Solver:
 		self.posIDX = ["adj", "adv", "adp", "conj", "det", "noun", "num", "pron", "prt", "verb", "x", "."]
 
 	def posterior(self, sentence, label):
-		return 0
+            listPostProb = []
+            sumOfpostProb = 0
+            for i in range(0,len(sentence)):
+                postProb = 0
+                word = sentence[i]
+                p = label[i]
+                a = math.log(1.0 * self.wordPos[word][p] / self.pos[p] if word in self.wordPos and p in self.wordPos[word] else 1.0 / (2.0 * self.totalWords))
+                b = math.log(self.pos[p] + 1)
+                c = math.log((sum(self.pos.values()) + 1) * 1.0)
+                d = math.log(self.words[word] if word in self.words else 1)
+                e = math.log(self.totalWords if word in self.words else 2 * self.totalWords)
+                postProb = (a + (b - c))
+                sumOfpostProb += postProb
+            return sumOfpostProb
 
 	# Do the training!
 	#
@@ -78,8 +91,8 @@ class Solver:
 			for p in self.pos:
 				if p in self.posIDX:
 					a = 1.0 * self.wordPos[word][p] / self.pos[p] if word in self.wordPos and p in self.wordPos[word] else 1.0 / (2.0 * self.totalWords)
-					c = (self.pos[p] + 1) * 1.0
-					d = (sum(self.pos.values()) + 1) * 1.0
+					c = (self.pos[p]) * 1.0
+					d = (sum(self.pos.values())) * 1.0
 					simplifiedProb = a * (c / d)
 					if simplifiedProb > maxProb:
 						maxProb = simplifiedProb
