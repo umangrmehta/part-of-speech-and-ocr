@@ -22,38 +22,43 @@ transitions = np.zeros((len(characters), len(characters)), dtype=np.int_)
 charCount = {}
 initial = {}
 for c in characters:
-	initial[c] = 0
-	charCount[c] = 0
+    initial[c] = 0
+    charCount[c] = 0
 
 file = open('cleaned.txt', 'r');
 for line in file:
-	for ltIDX in range(len(line)):
-		if ltIDX > 0:
-			if line[ltIDX - 1] not in characters or line[ltIDX] not in characters:
-				ltIDX += 1
-			else:
-				transitions[characters.index(line[ltIDX - 1]), characters.index(line[ltIDX])] += 1
-
+    for ltIDX in range(len(line)):
+        if line[ltIDX] in characters:
+            charCount[line[ltIDX]] += 1
+        if ltIDX == 0 and (line[ltIDX] in characters):
+            initial[line[ltIDX]] += 1
+        if ltIDX > 0:
+            if line[ltIDX - 1] not in characters or line[ltIDX] not in characters:
+                ltIDX += 1
+            else:
+                transitions[characters.index(line[ltIDX - 1]), characters.index(line[ltIDX])] += 1
+print charCount
+print initial
 CHARACTER_WIDTH = 14
 CHARACTER_HEIGHT = 25
 
 
 def load_letters(fname):
-	im = Image.open(fname)
-	px = im.load()
-	(x_size, y_size) = im.size
-	# print (im.size)
-	# print (int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH)
-	result = []
-	for x_beg in range(0, int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH, CHARACTER_WIDTH):
-		result += [["".join(['1' if px[x, y] < 1 else '0' for x in range(x_beg, x_beg + CHARACTER_WIDTH)]) for y in range(0, CHARACTER_HEIGHT)], ]
-	return result
+    im = Image.open(fname)
+    px = im.load()
+    (x_size, y_size) = im.size
+    # print (im.size)
+    # print (int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH)
+    result = []
+    for x_beg in range(0, int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH, CHARACTER_WIDTH):
+        result += [["".join(['1' if px[x, y] < 1 else '0' for x in range(x_beg, x_beg + CHARACTER_WIDTH)]) for y in range(0, CHARACTER_HEIGHT)], ]
+    return result
 
 
 def load_training_letters(fname):
-	TRAIN_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
-	letter_images = load_letters(fname)
-	return {TRAIN_LETTERS[i]: letter_images[i] for i in range(0, len(TRAIN_LETTERS))}
+    TRAIN_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
+    letter_images = load_letters(fname)
+    return {TRAIN_LETTERS[i]: letter_images[i] for i in range(0, len(TRAIN_LETTERS))}
 
 
 #####
@@ -69,65 +74,65 @@ str = ""
 count = 0
 
 for ltIDX in range(len(train_text)):
-	if ltIDX > 0:
-		transitions[characters.index(train_text[ltIDX - 1]), characters.index(train_text[ltIDX])] += 1
+    if ltIDX > 0:
+        transitions[characters.index(train_text[ltIDX - 1]), characters.index(train_text[ltIDX])] += 1
 
 for i in characters:
-	letter = train_letters[i]
-	letterList = []
-	for x in range(len(letter)):
-		for y in range(len(letter[0])):
-			letterList.append(letter[x][y])
-	bitmaps[i] = letterList
+    letter = train_letters[i]
+    letterList = []
+    for x in range(len(letter)):
+        for y in range(len(letter[0])):
+            letterList.append(letter[x][y])
+    bitmaps[i] = letterList
 
 
 def simplified(sentence):
-	charList = []
-	for charSegment in sentence:
-		flatSegment = [item for row in charSegment for item in row]
-		maxProb = 0.0
-		maxPOS = ''
-		for currentChar in bitmaps:
-			matchAlpha = 0
-			for idx in range(len(bitmaps[c])):
-				if bitmaps[currentChar][idx] == flatSegment[idx]:
-					matchAlpha += 1
-			simplifiedProb = matchAlpha / (14.0 * 25.0)
-			if simplifiedProb > maxProb:
-				maxProb = simplifiedProb
-				maxPOS = currentChar
+    charList = []
+    for charSegment in sentence:
+        flatSegment = [item for row in charSegment for item in row]
+        maxProb = 0.0
+        maxPOS = ''
+        for currentChar in bitmaps:
+            matchAlpha = 0
+            for idx in range(len(bitmaps[c])):
+                if bitmaps[currentChar][idx] == flatSegment[idx]:
+                    matchAlpha += 1
+            simplifiedProb = matchAlpha / (14.0 * 25.0)
+            if simplifiedProb > maxProb:
+                maxProb = simplifiedProb
+                maxPOS = currentChar
 
-		charList.append(maxPOS)
-	print "".join(charList)
-	return charList
+        charList.append(maxPOS)
+    print "".join(charList)
+    return charList
 
 
 def hmm_ve(sentence):
-	charList = []
-	prevState = np.zeros([72], np.float_)
-	currentState = np.zeros([72], np.float_)
-	for idx, charSegment in enumerate(sentence):
-		flatSegment = [item for row in charSegment for item in row]
-		for currentChar in characters:
-			matchAlpha = 0
-			for idx in range(len(bitmaps[currentChar])):
-				if bitmaps[currentChar][idx] == flatSegment[idx]:
-					matchAlpha += 1
-			emission = matchAlpha / (14.0 * 25.0)
-			prevStateSum = 0
-			if idx == 0:
-				prevStateSum = 1.0 * initial[currentChar] / sum(initial.values())
-			else:
-				for prevChar in characters:
-					transition = 1.0 * transitions[characters.index(prevChar), characters.index(currentChar)] / charCount[prevChar]
-					prevStateSum += transition * prevState[characters.index(prevChar)]
-			currentState[characters.index(currentChar)] = prevStateSum * emission
+    charList = []
+    prevState = np.zeros([72], np.float_)
+    currentState = np.zeros([72], np.float_)
+    for idx, charSegment in enumerate(sentence):
+        flatSegment = [item for row in charSegment for item in row]
+        for currentChar in characters:
+            matchAlpha = 0
+            for idx in range(len(bitmaps[currentChar])):
+                if bitmaps[currentChar][idx] == flatSegment[idx]:
+                    matchAlpha += 1
+            emission = matchAlpha / (14.0 * 25.0)
+            prevStateSum = 0
+            if idx == 0:
+                prevStateSum = 1.0 * initial[currentChar] / sum(initial.values())
+            else:
+                for prevChar in characters:
+                    transition = 1.0 * transitions[characters.index(prevChar), characters.index(currentChar)] / charCount[prevChar]
+                    prevStateSum += transition * prevState[characters.index(prevChar)]
+            currentState[characters.index(currentChar)] = prevStateSum * emission
 
-		charList.append(characters[np.argmax(currentState)])
-		prevState = currentState
-		currentState = np.zeros([12], np.float_)
+        charList.append(characters[np.argmax(currentState)])
+        prevState = currentState
+        currentState = np.zeros([12], np.float_)
 
-	return charList
+    return charList
 simplified(test_letters)
 
 
