@@ -10,7 +10,6 @@
 from PIL import Image, ImageDraw, ImageFont
 import sys
 import numpy as np
-import string
 
 letPtnTrn = {}
 letPtnTst = {}
@@ -19,13 +18,13 @@ transitions = np.zeros((12, 12), dtype=np.int_)
 CHARACTER_WIDTH=14
 CHARACTER_HEIGHT=25
 
-def read_data(fname):
-    exemplars = []
-    file = open(fname, 'r');
-    for line in file:
-        data = tuple([w.lower() for w in line.split()])
-        exemplars += [ (data[0::2]), ]
-    return exemplars
+# def read_data(fname):
+#     exemplars = []
+#     file = open(fname, 'r');
+#     for line in file:
+#         data = tuple([w.lower() for w in line.split()])
+#         exemplars += [ (data[0::2]), ]
+#     return exemplars
 
 def load_letters(fname):
     im = Image.open(fname)
@@ -46,7 +45,7 @@ def load_training_letters(fname):
 #####
 # main program
 (train_img_fname, train_txt_fname, test_img_fname, train_file) = sys.argv[1:]
-train_data = read_data(train_file)
+#train_data = read_data(train_file)
 train_letters = load_training_letters(train_img_fname)
 test_letters = load_letters(test_img_fname)
 #print train_letters['a']
@@ -75,18 +74,16 @@ for word in test_letters:
     letter = [item for row in word for item in row]
     tempDict = {}
     for alphabet in letPtnTrn:
-        matchAlpha = 1
+        matchAlpha = 0
         for idx in range(len(letPtnTrn[alphabet])):
             if letPtnTrn[alphabet][idx] == letter[idx]:
-                matchAlpha *= 0.8
-            else:
-                matchAlpha *= 0.2
-        tempDict[alphabet] = matchAlpha
+                matchAlpha += 1
+        tempDict[alphabet] = matchAlpha / (14.0 * 25.0)
     testAplha["".join([ r for r in letter])] = tempDict
 
-#print (testAplha)
-for letter in testAplha:
-    print (max(testAplha[letter], key=testAplha[letter].get))
+for word in test_letters:
+    letter = [item for row in word for item in row]
+    print max(testAplha["".join([ r for r in letter])], key=testAplha["".join([ r for r in letter])].get)
 # Each training letter is now stored as a list of characters, where black
 #  dots are represented by *'s and white dots are spaces. For example,
 #  here's what "a" looks like:
