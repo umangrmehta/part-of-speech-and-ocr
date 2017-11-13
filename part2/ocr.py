@@ -56,12 +56,11 @@ train_arr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-
 str=""
 count = 0
 
-for sentence in train_data:
-    for words in sentence[0]:
-        for ltIDX in len(words):
-            if ltIDX > 0:
-                transitions[train_arr.index(words[ltIDX - 1]), train_arr.index(words[ltIDX])] += 1
-print (transitions)
+#for sentence in train_data:
+#    for words in sentence[0]:
+#        for ltIDX in len(words):
+#            if ltIDX > 0:
+#                transitions[train_arr.index(words[ltIDX - 1]), train_arr.index(words[ltIDX])] += 1
 
 for i in train_arr:
     letter = train_letters[i]
