@@ -38,8 +38,6 @@ class Solver:
 			a = math.log(1.0 * self.wordPos[word][p] / self.pos[p] if word in self.wordPos and p in self.wordPos[word] else 1.0 / (2.0 * self.totalWords))
 			b = math.log(self.pos[p] + 1)
 			c = math.log((sum(self.pos.values()) + 1) * 1.0)
-			d = math.log(self.words[word] if word in self.words else 1)
-			e = math.log(self.totalWords if word in self.words else 2 * self.totalWords)
 			postProb = (a + (b - c))
 			sumOfpostProb += postProb
 		return sumOfpostProb
@@ -99,9 +97,7 @@ class Solver:
 		return listPOS
 
 	def hmm_ve(self, sentence):
-		posList = []
-		prevState = np.zeros([12], np.float_)
-		currentState = np.zeros([12], np.float_)
+		forward = np.zeros((12, len(sentence)), dtype=np.float)
 		for idx, word in enumerate(sentence):
 			for currentPOS in self.posIDX:
 				emission = 1.0 * self.wordPos[word][currentPOS] / self.pos[currentPOS] if word in self.wordPos and currentPOS in self.wordPos[word] else 1.0 / (2.0 * self.totalWords)
@@ -111,14 +107,26 @@ class Solver:
 				else:
 					for prevPOS in self.posIDX:
 						transition = 1.0 * self.transitions[self.posIDX.index(prevPOS), self.posIDX.index(currentPOS)] / self.pos[prevPOS]
-						prevStateSum += transition * prevState[self.posIDX.index(prevPOS)]
-				currentState[self.posIDX.index(currentPOS)] = prevStateSum * emission
+						prevStateSum += transition * forward[self.posIDX.index(prevPOS), idx - 1]
+				forward[self.posIDX.index(currentPOS), idx] = prevStateSum * emission
 
-			posList.append(self.posIDX[np.argmax(currentState)])
-			prevState = currentState
-			currentState = np.zeros([12], np.float_)
+		backward = np.zeros((12, len(sentence)), dtype=np.float)
+		for idx in range(len(sentence) - 1, -1, -1):
+			word = sentence[idx]
+			for currentPOS in self.posIDX:
+				emission = 1.0 * self.wordPos[word][currentPOS] / self.pos[currentPOS] if word in self.wordPos and currentPOS in self.wordPos[word] else 1.0 / (2.0 * self.totalWords)
+				prevStateSum = 0
+				if idx == len(sentence) - 1:
+					prevStateSum = 1.0 * self.initial[currentPOS] / sum(self.initial.values())
+				else:
+					for prevPOS in self.posIDX:
+						transition = 1.0 * self.transitions[self.posIDX.index(currentPOS), self.posIDX.index(prevPOS)] / self.pos[prevPOS]
+						prevStateSum += transition * backward[self.posIDX.index(prevPOS), idx + 1]
+				backward[self.posIDX.index(currentPOS), idx] = prevStateSum * emission
 
-		return posList
+		convolution = np.multiply(forward, backward)
+
+		return [self.posIDX[idx] for idx in np.argmax(convolution, axis=0)]
 
 	def hmm_viterbi(self, sentence):
 		viterbi = np.empty([12, len(sentence)], dtype=np.float_)
