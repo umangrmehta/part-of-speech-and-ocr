@@ -10,6 +10,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import sys
 import numpy as np
+import string
 
 letPtnTrn = {}
 letPtnTst = {}
@@ -22,8 +23,8 @@ def read_data(fname):
     exemplars = []
     file = open(fname, 'r');
     for line in file:
-        data = tuple([line.lower()])
-        print (data)
+        data = tuple([w.lower() for w in line.split()])
+        exemplars += [ (data[0::2]), ]
     return exemplars
 
 def load_letters(fname):
@@ -55,9 +56,12 @@ train_arr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-
 str=""
 count = 0
 
-#for sentence in train_data:
-#    for words in sentence[0]:
-#        for letter in len()
+for sentence in train_data:
+    for words in sentence[0]:
+        for ltIDX in len(words):
+            if ltIDX > 0:
+                transitions[train_arr.index(words[ltIDX - 1]), train_arr.index(words[ltIDX])] += 1
+print (transitions)
 
 for i in train_arr:
     letter = train_letters[i]
