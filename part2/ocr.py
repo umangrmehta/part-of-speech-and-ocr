@@ -12,7 +12,6 @@ import sys
 import numpy as np
 import math
 
-
 CHARACTER_WIDTH = 14
 CHARACTER_HEIGHT = 25
 
@@ -80,25 +79,23 @@ for i in characters:
     bitmaps[i] = letterList
 
 pixelProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.int_)
-emissionProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.int_)
-
-for i in range(len(characters)):
-    character = characters[i]
-    for rowIDX in range(len(train_letters[character])):
-        trainRow = list(train_letters[character][rowIDX])
-        testRow = list(test_letters[i][rowIDX])
-        for colIDX in range(len(trainRow)):
-            if trainRow[colIDX] == testRow[colIDX]:
-                emissionProb[rowIDX, colIDX] = pixelProb[rowIDX, colIDX] / (float)(CHARACTER_HEIGHT*CHARACTER_WIDTH)
-
-print emissionProb
+emissionProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.float)
 
 for bitmap in train_letters:
-    for rowIDX, row in enumerate(bitmap):
-        for colIDX, pixel in enumerate(row):
-            if bitmap:
+    for rowIDX in range(len(train_letters[bitmap])):
+        for colIDX in range(len(train_letters[bitmap][rowIDX])):
+            if train_letters[bitmap][rowIDX][colIDX] == '1':
                 pixelProb[rowIDX, colIDX] += 1
 
+for letter in test_letters:
+    for i in characters:
+        train_letter = train_letters[i]
+        for rowIDX in range(len(train_letter)):
+            trainRow = list(train_letter[rowIDX])
+            testRow = list(letter[rowIDX])
+            for colIDX in range(len(trainRow)):
+                if trainRow[colIDX] == testRow[colIDX]:
+                    emissionProb[rowIDX, colIDX] = pixelProb[rowIDX, colIDX] / float(CHARACTER_HEIGHT*CHARACTER_WIDTH)
 
 def simplified(sentence):
     charList = []
@@ -191,9 +188,9 @@ def hmm_viterbi(sentence):
     return returnList
 
 
-print "Simplified: " + "".join(simplified(test_letters))
-print "HMM VE: " + "".join(hmm_ve(test_letters))
-print "HMM Viterbi: " + "".join(hmm_viterbi(test_letters))
+#print "Simplified: " + "".join(simplified(test_letters))
+#print "HMM VE: " + "".join(hmm_ve(test_letters))
+#print "HMM Viterbi: " + "".join(hmm_viterbi(test_letters))
 
 
 # Each training letter is now stored as a list of characters, where black
