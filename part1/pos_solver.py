@@ -117,7 +117,7 @@ class Solver:
 				emission = 1.0 * self.wordPos[word][currentPOS] / self.pos[currentPOS] if word in self.wordPos and currentPOS in self.wordPos[word] else 1.0 / (2.0 * self.totalWords)
 				prevStateSum = 0
 				if idx == len(sentence) - 1:
-					prevStateSum = 1.0 * self.initial[currentPOS] / sum(self.initial.values())
+					prevStateSum = 1.0 * self.pos[currentPOS] / self.totalWords
 				else:
 					for prevPOS in self.posIDX:
 						transition = 1.0 * self.transitions[self.posIDX.index(currentPOS), self.posIDX.index(prevPOS)] / self.pos[prevPOS]
