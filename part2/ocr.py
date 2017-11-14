@@ -79,7 +79,7 @@ for i in characters:
     bitmaps[i] = letterList
 
 pixelProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.int_)
-emissionProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.float)
+#emissionProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.float)
 
 for bitmap in train_letters:
     for rowIDX in range(len(train_letters[bitmap])):
@@ -87,15 +87,18 @@ for bitmap in train_letters:
             if train_letters[bitmap][rowIDX][colIDX] == '1':
                 pixelProb[rowIDX, colIDX] += 1
 
-for letter in test_letters:
-    for i in characters:
-        train_letter = train_letters[i]
-        for rowIDX in range(len(train_letter)):
-            trainRow = list(train_letter[rowIDX])
-            testRow = list(letter[rowIDX])
-            for colIDX in range(len(trainRow)):
-                if trainRow[colIDX] == testRow[colIDX]:
-                    emissionProb[rowIDX, colIDX] = pixelProb[rowIDX, colIDX] / float(CHARACTER_HEIGHT*CHARACTER_WIDTH)
+def emissionCal(letter, trainChar):
+    emissionProb = 1
+    train_letter = train_letters[trainChar]
+    for rowIDX in range(len(train_letter)):
+        trainRow = list(train_letter[rowIDX])
+        testRow = list(letter[rowIDX])
+        for colIDX in range(len(trainRow)):
+            if trainRow[colIDX] == testRow[colIDX] == '1':
+               emissionProb *= pixelProb[rowIDX, colIDX] / float(CHARACTER_HEIGHT*CHARACTER_WIDTH)
+    return emissionProb
+
+#print emissionCal(['00000000000000','00000000000000','00000000000000','00000000000000','11111111111111','11111111111111','11111111111111','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000'],'A')
 
 def simplified(sentence):
     charList = []
