@@ -38,6 +38,7 @@ def load_training_letters(fname):
 # main program
 (train_img_fname, train_txt_fname, test_img_fname) = sys.argv[1:]
 train_letters = load_training_letters(train_img_fname)
+trainLetters = load_letters(train_img_fname)
 test_letters = load_letters(test_img_fname)
 # print train_letters['a']
 ## Below is just some sample code to show you how the functions above work.
@@ -87,18 +88,41 @@ for bitmap in train_letters:
             if train_letters[bitmap][rowIDX][colIDX] == '1':
                 pixelProb[rowIDX, colIDX] += 1
 
-def emissionCal(letter, trainChar):
-    emissionProb = 1
-    train_letter = train_letters[trainChar]
-    for rowIDX in range(len(train_letter)):
-        trainRow = list(train_letter[rowIDX])
-        testRow = list(letter[rowIDX])
-        for colIDX in range(len(trainRow)):
-            if trainRow[colIDX] == testRow[colIDX] == '1':
-               emissionProb *= pixelProb[rowIDX, colIDX] / float(CHARACTER_HEIGHT*CHARACTER_WIDTH)
-    return emissionProb
+#def emissionCal(letter, trainChar):
+#    emissionProb = 1
+#    train_letter = train_letters[trainChar]
+#    for rowIDX in range(len(train_letter)):
+#        trainRow = list(train_letter[rowIDX])
+#        testRow = list(letter[rowIDX])
+#        for colIDX in range(len(trainRow)):
+#            if trainRow[colIDX] == testRow[colIDX] == '1':
+#               emissionProb *= (pixelProb[rowIDX, colIDX] / float(72))
+#    return emissionProb
 
-#print emissionCal(['00000000000000','00000000000000','00000000000000','00000000000000','11111111111111','11111111111111','11111111111111','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000'],'A')
+def meanDensity(sentence):
+    summation = 0
+    for letter in sentence:
+        for rowIDX in range(len(letter)):
+            row = list(letter[rowIDX])
+            for colIDX in range(len(row)):
+                if row[colIDX] == '1':
+                    summation += 1
+    return summation / float(len(sentence)) 
+
+def emissionCal(currentChar, flatSegment):
+    matchAlpha = 1.0
+    for idx in range(len(bitmaps[currentChar])):
+        if bitmaps[currentChar][idx] == flatSegment[idx]:
+            matchAlpha *= 0.8
+        else:
+            matchAlpha *= 0.2
+    return matchAlpha
+ 
+#print meanDensity(test_letters)
+#print meanDensity(trainLetters)
+
+
+#emissionCal(['00000000000000','00000000000000','00000000000000','00000000000000','11111111111111','11111111111111','11111111111111','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000'],'A')
 
 def simplified(sentence):
     charList = []
@@ -122,33 +146,59 @@ def simplified(sentence):
 
 def hmm_ve(sentence):
     charList = []
-    prevState = np.zeros([len(characters)], np.float_)
-    currentState = np.zeros([len(characters)], np.float_)
+    fwdState = np.zeros([len(characters), len(sentence)], np.float_)
     for charIDX, charSegment in enumerate(sentence):
         flatSegment = [item for row in charSegment for item in row]
+        currentStateSum = 0.0
         for currentChar in characters:
-            matchAlpha = 1.0
-            for idx in range(len(bitmaps[currentChar])):
-                if bitmaps[currentChar][idx] == flatSegment[idx]:
-                    matchAlpha *= 0.8
-                else:
-                    matchAlpha *= 0.2
-            emission = matchAlpha
+            emission = emissionCal(currentChar, flatSegment)
+#            matchAlpha = 1.0
+#            for idx in range(len(bitmaps[currentChar])):
+#                if bitmaps[currentChar][idx] == flatSegment[idx]:
+#                    matchAlpha *= 0.8
+#                else:
+#                    matchAlpha *= 0.2
+#            emission = matchAlpha
             prevStateSum = 0
             if charIDX == 0:
                 prevStateSum = 1.0 * initial[currentChar] / totalInitials
             else:
                 for prevChar in characters:
                     transition = 1.0 * (transitions[characters.index(prevChar), characters.index(currentChar)] + 1) / (charCount[prevChar] + 1 if charCount[prevChar] > 0 else totalCharCount)
-                    prevStateSum += transition * prevState[characters.index(prevChar)]
-            currentState[characters.index(currentChar)] = prevStateSum * emission
+                    prevStateSum += transition
+            fwdState[characters.index(currentChar), charIDX] = prevStateSum * emission
+            currentStateSum += prevStateSum * emission
+        for currentChar in characters:
+            fwdState[characters.index(currentChar), charIDX] = fwdState[characters.index(currentChar), charIDX] / currentStateSum
+            
+    bwdState = np.zeros([len(characters), len(sentence)], np.float_)
+    for charIDX in range(len(sentence) - 1, -1, -1):
+        charSegment = sentence[charIDX]
+        flatSegment = [item for row in charSegment for item in row]
+        currentStateSum = 0.0
+        for currentChar in characters:
+            emission = emissionCal(currentChar, flatSegment)
+#            matchAlpha = 1.0
+#            for idx in range(len(bitmaps[currentChar])):
+#                if bitmaps[currentChar][idx] == flatSegment[idx]:
+#                    matchAlpha *= 0.8
+#                else:
+#                    matchAlpha *= 0.2
+#            emission = matchAlpha
+            prevStateSum = 0
+            if charIDX == 0:
+                prevStateSum = 1.0 * charCount[currentChar] / totalInitials
+            else:
+                for prevChar in characters:
+                    transition = 1.0 * (transitions[characters.index(prevChar), characters.index(currentChar)] + 1) / (charCount[prevChar] + 1 if charCount[prevChar] > 0 else totalCharCount)
+                    prevStateSum += transition
+            bwdState[characters.index(currentChar), charIDX] = prevStateSum * emission
+            currentStateSum += prevStateSum * emission
+        for currentChar in characters:
+            fwdState[characters.index(currentChar), charIDX] = fwdState[characters.index(currentChar), charIDX] / currentStateSum
 
-        charList.append(characters[np.argmax(currentState)])
-        prevState = currentState
-        currentState = np.zeros([len(characters)], np.float_)
-
-    return charList
-
+    convolution = np.multiply(fwdState, bwdState)
+    return [characters[idx] for idx in np.argmax(convolution, axis=0)]
 
 def hmm_viterbi(sentence):
     viterbi = np.empty([len(characters), len(sentence)], dtype=np.float_)
@@ -191,10 +241,9 @@ def hmm_viterbi(sentence):
     return returnList
 
 
-#print "Simplified: " + "".join(simplified(test_letters))
-#print "HMM VE: " + "".join(hmm_ve(test_letters))
+print "Simplified: " + "".join(simplified(test_letters))
+print "HMM VE: " + "".join(hmm_ve(test_letters))
 #print "HMM Viterbi: " + "".join(hmm_viterbi(test_letters))
-
 
 # Each training letter is now stored as a list of characters, where black
 #  dots are represented by *'s and white dots are spaces. For example,
