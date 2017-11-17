@@ -20,8 +20,6 @@ def load_letters(fname):
     im = Image.open(fname)
     px = im.load()
     (x_size, y_size) = im.size
-    # print (im.size)
-    # print (int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH)
     result = []
     for x_beg in range(0, int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH, CHARACTER_WIDTH):
         result += [["".join(['1' if px[x, y] < 1 else '0' for x in range(x_beg, x_beg + CHARACTER_WIDTH)]) for y in range(0, CHARACTER_HEIGHT)], ]
@@ -48,6 +46,7 @@ bitmaps = {}
 letPtnTst = {}
 
 characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
+totalChar = 0
 transitions = np.zeros((len(characters), len(characters)), dtype=np.int_)
 charCount = {}
 initial = {}
@@ -58,6 +57,7 @@ for c in characters:
 file = open(train_txt_fname, 'r');
 for line in file:
     for ltIDX in range(len(line)):
+        totalChar += 1
         if line[ltIDX] in characters:
             charCount[line[ltIDX]] += 1
         if ltIDX == 0 and (line[ltIDX] in characters):
@@ -80,24 +80,12 @@ for i in characters:
     bitmaps[i] = letterList
 
 pixelProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.int_)
-#emissionProb = np.zeros((CHARACTER_HEIGHT, CHARACTER_WIDTH), dtype=np.float)
 
 for bitmap in train_letters:
     for rowIDX in range(len(train_letters[bitmap])):
         for colIDX in range(len(train_letters[bitmap][rowIDX])):
             if train_letters[bitmap][rowIDX][colIDX] == '1':
                 pixelProb[rowIDX, colIDX] += 1
-
-#def emissionCal(letter, trainChar):
-#    emissionProb = 1
-#    train_letter = train_letters[trainChar]
-#    for rowIDX in range(len(train_letter)):
-#        trainRow = list(train_letter[rowIDX])
-#        testRow = list(letter[rowIDX])
-#        for colIDX in range(len(trainRow)):
-#            if trainRow[colIDX] == testRow[colIDX] == '1':
-#               emissionProb *= (pixelProb[rowIDX, colIDX] / float(72))
-#    return emissionProb
 
 def meanDensity(sentence):
     summation = 0
@@ -118,12 +106,6 @@ def emissionCal(currentChar, flatSegment):
             matchAlpha *= 0.2
     return matchAlpha
  
-#print meanDensity(test_letters)
-#print meanDensity(trainLetters)
-
-
-#emissionCal(['00000000000000','00000000000000','00000000000000','00000000000000','11111111111111','11111111111111','11111111111111','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000','00000000000000'],'A')
-
 def simplified(sentence):
     charList = []
     for charSegment in sentence:
@@ -152,13 +134,6 @@ def hmm_ve(sentence):
         currentStateSum = 0.0
         for currentChar in characters:
             emission = emissionCal(currentChar, flatSegment)
-#            matchAlpha = 1.0
-#            for idx in range(len(bitmaps[currentChar])):
-#                if bitmaps[currentChar][idx] == flatSegment[idx]:
-#                    matchAlpha *= 0.8
-#                else:
-#                    matchAlpha *= 0.2
-#            emission = matchAlpha
             prevStateSum = 0
             if charIDX == 0:
                 prevStateSum = 1.0 * initial[currentChar] / totalInitials
@@ -178,13 +153,6 @@ def hmm_ve(sentence):
         currentStateSum = 0.0
         for currentChar in characters:
             emission = emissionCal(currentChar, flatSegment)
-#            matchAlpha = 1.0
-#            for idx in range(len(bitmaps[currentChar])):
-#                if bitmaps[currentChar][idx] == flatSegment[idx]:
-#                    matchAlpha *= 0.8
-#                else:
-#                    matchAlpha *= 0.2
-#            emission = matchAlpha
             prevStateSum = 0
             if charIDX == 0:
                 prevStateSum = 1.0 * charCount[currentChar] / totalInitials
@@ -208,13 +176,7 @@ def hmm_viterbi(sentence):
             flatSegment = [item for row in charSegment for item in row]
             maxViterbi = - float('inf')
             maxChar = ''
-            matchAlpha = 1.0
-            for idx in range(len(bitmaps[currentChar])):
-                if bitmaps[currentChar][idx] == flatSegment[idx]:
-                    matchAlpha *= 0.8
-                else:
-                    matchAlpha *= 0.2
-            emissionProb = matchAlpha
+            emissionProb = math.log(emissionCal(currentChar, flatSegment))
             if charIDX == 0:
                 initialProb = math.log(initial[currentChar] + 1) - math.log(totalInitials + 1)
                 matrixScore = emissionProb + initialProb
@@ -222,13 +184,13 @@ def hmm_viterbi(sentence):
                 maxPrevChar[(characters.index(currentChar), charIDX)] = ''
             else:
                 for prevChar in characters:
-                    transValue = 1 if (transitions[characters.index(prevChar), characters.index(currentChar)]) <= 1 else (transitions[characters.index(prevChar), characters.index(currentChar)])
-                    transProb = math.log(transValue) - math.log(charCount[prevChar] if charCount[prevChar] > 0 else totalCharCount)
+                    transValue = (1.0/totalChar) if (transitions[characters.index(prevChar), characters.index(currentChar)]) <= 1 else (transitions[characters.index(prevChar), characters.index(currentChar)])
+                    #transProb = math.log(transValue) - math.log(charCount[prevChar] if charCount[prevChar] > 0 else totalCharCount)
+                    transProb = math.log(transValue)
                     interViterbi = (viterbi[characters.index(prevChar), charIDX - 1] + transProb)
                     if interViterbi > maxViterbi:
                         maxChar = prevChar
                         maxViterbi = interViterbi
-                # print maxPOS
                 viterbi[(characters.index(currentChar), charIDX)] = maxViterbi + emissionProb
                 maxPrevChar[(characters.index(currentChar), charIDX)] = maxChar
 
@@ -243,7 +205,7 @@ def hmm_viterbi(sentence):
 
 print "Simplified: " + "".join(simplified(test_letters))
 print "HMM VE: " + "".join(hmm_ve(test_letters))
-#print "HMM Viterbi: " + "".join(hmm_viterbi(test_letters))
+print "HMM Viterbi: " + "".join(hmm_viterbi(test_letters))
 
 # Each training letter is now stored as a list of characters, where black
 #  dots are represented by *'s and white dots are spaces. For example,
