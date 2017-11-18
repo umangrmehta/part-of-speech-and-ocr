@@ -29,18 +29,18 @@
 ## Backward Matrix: stores the final to initial probability (P(POS|W)) score
 ## For calculating the P(POS|W), each element in the forward matrix is multiplied with the corresponding element in the same cell of the backward matrix
 ## For each word the maximum probability is calculated, and its respective part of speech is assigned to that word.
-## We formulate a HMM with POS labels as hidden state dependent on the previous. Each observed word is dependent fully on the corresponding POS label.
+## We formulate a HMM with POS labels as hidden state dependent on the previous label. Each observed word is dependent fully on the corresponding POS label.
 ## 
 ## Viterbi:
 ##----------
 ## Calculated using the following Bellman Equation for Viterbi Decoding:
-## v[t] = e(w[t]) {for i=1 to N max( v[t-1]*P(i,j)}
+## v[t] = e(w[t]) {for i=1 to N max(v[t-1] * P(i,j))}
 ## where t is the current word; t-1 is the previous word and e() is the emission probability; v is posterior value; N is total number of part of speech
 ## We have taken Log transformation of this equation: v[t] = log(e(w[t])) {for i=1 to N max(log(v[t - 1]) + log(P(ij))}
 ## We have used two matrices
 ##	- store the value for posterior
 ##	- store the part of speech max value for that character equivalent to {for i=1 to N argmax(log(v[t - 1]) + log(P(i,j))}
-## We formulate a HMM with POS as hidden state dependent on the previous and the transition. Each observed word is dependent fully on the corresponding POS label.
+## The formulation of HMM is same as that of HMM with Variable Elimination
 ## 
 ## Posterior:
 ##------------ 
@@ -49,7 +49,7 @@
 ## 
 ## General Strategy discussion:
 ##----------------------------- 
-## We had general strategy discussion with group cgalani-sahk-skcanick
+## We had a discussion with group cgalani-sahk-skpanick for a general strategy to implement the respective algorithms
 ## 
 ## Output:
 ##--------

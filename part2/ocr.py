@@ -28,18 +28,18 @@
 ## Backward Matrix: stores the final to initial probability (P(C|PD)) score
 ## For calculating the P(C|PD), each element in the forward matrix is multiplied with the corresponding element in the same cell of the backward matrix
 ## For each character segment of a letter in the image the maximum probability is calculated, and its respective letter is displayed.
-## We formulate a HMM with characters as hidden state dependent on the previous. Each observed character segment of a letter in the image is dependent fully on the corresponding character.
+## We formulate a HMM with characters as hidden state dependent on the previous character. Each observed character segment of a letter in the image is dependent fully on the corresponding character.
 ## 
 ## Viterbi:
 ##----------
 ## Calculated using the following Bellman Equation for Viterbi Decoding:
-## v[t] = e(w[t]) {for i=1 to N max( v[t-1]*P(i,j)}
+## v[t] = e(w[t]) {for i=1 to N max(v[t-1] * P(i,j))}
 ## where t is the current letter; t-1 is the previous letter and e() is the emission probability; v is posterior value; N is total number of characters in the training data
 ## We have taken transformation of this equation: v[t] = log(e(w[t])) {for i=1 to N max( log(v[t-1]) + log(P(i,j))}
 ## We have used two matrices
 ##	- store the value for posterior
 ##	- store the letter equivalent to {for i=1 to N argmax( log(v[t-1]) + log(P(i,j))}
-## We formulate a HMM with characters as hidden state dependent on the previous and the transition. Each observed character segment of a letter in the image is dependent fully on the corresponding character.
+## The formulation of HMM is same as that of HMM with Variable Elimination
 ##
 ## Emission:
 ##------------ 
@@ -48,7 +48,7 @@
 ## 
 ## General Strategy discussion:
 ##----------------------------- 
-## We had general strategy discussion with group cgalani-sahk-skcanick
+## We had a discussion with group cgalani-sahk-skpanick for a general strategy to implement the respective algorithms
 ## 
 ## Output:
 ##--------
