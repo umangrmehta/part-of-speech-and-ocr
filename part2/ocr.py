@@ -3,7 +3,7 @@
 # ./ocr.py : Perform optical character recognition, usage:
 #     ./ocr.py train-image-file.png train-text.txt test-image-file.png
 # 
-# Authors: (insert names here)
+# Authors: Ayesha Bhimdiwala(aybhimdi), Umang Mehta(mehtau) & Vaishnavi Srinivasan(vsriniv)
 # (based on skeleton code by D. Crandall, Oct 2017)
 #
 
@@ -12,7 +12,7 @@
 ## Simplified:
 ##-------------
 ## It is calculated using the formula: P(C|PD) = P(PD|C)P(C)/P(PD)
-## Probability of character segment of a letter in the image is constant and it is ingored for calculating the simplified probability
+## Probability of character segment of a letter in the image is constant and it is ignored for calculating the simplified probability
 ## => P(C|PD) is directly proportional to P(PD|C)P(C)
 ## The maximum of the posterior probability for each character segment of a letter in the image is used to derive its letter.
 ##
@@ -20,20 +20,21 @@
 ##-----------------------
 ## References: https://www.cs.cmu.edu/~epxing/Class/10708-14/scribe_notes/scribe_note_lecture4.pdf
 ## 			   https://www.youtube.com/watch?v=7zDARfKVm7s
-## We have used forward-backward algorith for implementing variable elimination using HMM.
+## We have used forward-backward algorithm for implementing variable elimination using HMM.
 ## Forward Matrix: stores the initial to final probability (P(C|PD)) score
-## Backwar Matrix: stores the final to initial probability (P(C|PD)) score
+## Backward Matrix: stores the final to initial probability (P(C|PD)) score
 ## For calculating the P(C|PD), each element in the forward matrix is multiplied with the corresponding element in the same cell of the backward matrix
 ## For each character segment of a letter in the image the maximum probability is calculated, and its respective letter is displayed.
 ## 
 ## Viterbi:
 ##----------
-## Calculated using the Bellman equation : v[t] = e(w[t]) {for i=1 to N max( v[t-1]*P(ij)}
-## where t is the current letter; t-1 is the previous letter and e() is the emission probability; v is viterbi value; N is total number of characters in the training data
-## We have taken tranformation of this equation: v[t+1] = log(e(w[t+1])) {for i=1 to N argmax( log(v[t])+log(P(ij))}
+## Calculated using the following Bellman Equation for Viterbi Decoding:
+## v[t] = e(w[t]) {for i=1 to N max( v[t-1]*P(i,j)}
+## where t is the current letter; t-1 is the previous letter and e() is the emission probability; v is posterior value; N is total number of characters in the training data
+## We have taken transformation of this equation: v[t] = log(e(w[t])) {for i=1 to N max( log(v[t-1]) + log(P(i,j))}
 ## We have used two matrices
 ##	- store the value for posterior
-##	- store the letter
+##	- store the letter equivalent to {for i=1 to N argmax( log(v[t-1]) + log(P(i,j))}
 ## 
 ## Emission:
 ##------------ 

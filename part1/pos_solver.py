@@ -1,7 +1,7 @@
 ###################################
 # CS B551 Fall 2017, Assignment #3
 #
-# Your names and user ids: aybhimdi-mehtau-vsriniv-a3
+# Your names and user ids: Ayesha Bhimdiwala(aybhimdi), Umang Mehta(mehtau) & Vaishnavi Srinivasan(vsriniv)
 #
 # (Based on skeleton code by D. Crandall)
 #
@@ -13,7 +13,7 @@
 ## Simplified:
 ##-------------
 ## It is calculated using the formula: P(POS|W) = P(W|POS)P(POS)/P(W)
-## Probability of word is constant and it is ingored for calculating the simplified probability
+## Probability of word is constant and it is ignored for calculating the simplified probability
 ## => P(POS|W) is directly proportional to P(W|POS)P(POS)
 ## The maximum of the posterior probability for each word is used to derive its part of speech.
 ##
@@ -21,21 +21,21 @@
 ##-----------------------
 ## References: https://www.cs.cmu.edu/~epxing/Class/10708-14/scribe_notes/scribe_note_lecture4.pdf
 ## 			   https://www.youtube.com/watch?v=7zDARfKVm7s
-## We have used forward-backward algorith for implementing variable elimination using HMM.
+## We have used forward-backward algorithm for implementing variable elimination using HMM.
 ## Forward Matrix: stores the initial to final probability (P(POS|W)) score
-## Backwar Matrix: stores the final to initial probability (P(POS|W)) score
+## Backward Matrix: stores the final to initial probability (P(POS|W)) score
 ## For calculating the P(POS|W), each element in the forward matrix is multiplied with the corresponding element in the same cell of the backward matrix
 ## For each word the maximum probability is calculated, and its respective part of speech is assigned to that word.
 ## 
 ## Viterbi:
 ##----------
-## Calculated using the formula : v[t] = e(w[t]) {for i=1 to N max( v[t-1]*P(ij)}
-## where t is the current word; t-1 is the previous word and e() is the emission probability; v is viterbi value; N is total number of part of speech
-## This is Bellman's equation
-## We have taken tranformation of this equation: v[t+1] = log(e(w[t+1])) {for i=1 to N argmax( log(v[t])+log(P(ij))}
+## Calculated using the following Bellman Equation for Viterbi Decoding:
+## v[t] = e(w[t]) {for i=1 to N max( v[t-1]*P(i,j)}
+## where t is the current word; t-1 is the previous word and e() is the emission probability; v is posterior value; N is total number of part of speech
+## We have taken Log transformation of this equation: v[t] = log(e(w[t])) {for i=1 to N max(log(v[t - 1]) + log(P(ij))}
 ## We have used two matrices
 ##	- store the value for posterior
-##	- store the part of speech max value for that character
+##	- store the part of speech max value for that character equivalent to {for i=1 to N argmax(log(v[t - 1]) + log(P(i,j))}
 ## 
 ## Posterior:
 ##------------ 
