@@ -41,6 +41,10 @@
 ##------------ 
 ## Followed the simplified probability calculation technique to display the sentence accuracy.
 ## 
+## 
+## General Strategy discussion:
+##----------------------------- 
+## We had general strategy discussion with group cgalani-sahk-skcanick
 #
 
 ####
