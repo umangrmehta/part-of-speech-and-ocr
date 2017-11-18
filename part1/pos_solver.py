@@ -9,6 +9,8 @@
 ####
 # Put your report here!!
 # W: word; POS: part of speech
+# Hidden states: pos 
+# Observable states: words
 ##
 ## Simplified:
 ##-------------
@@ -16,16 +18,18 @@
 ## Probability of word is constant and it is ignored for calculating the simplified probability
 ## => P(POS|W) is directly proportional to P(W|POS)P(POS)
 ## The maximum of the posterior probability for each word is used to derive its part of speech.
+## POS tags are independent of each other and the observed word is dependent on the POS tag.
 ##
 ## Variable Elimination:
 ##-----------------------
 ## References: https://www.cs.cmu.edu/~epxing/Class/10708-14/scribe_notes/scribe_note_lecture4.pdf
-## 			   https://www.youtube.com/watch?v=7zDARfKVm7s
+## 		https://www.youtube.com/watch?v=7zDARfKVm7s
 ## We have used forward-backward algorithm for implementing variable elimination using HMM.
 ## Forward Matrix: stores the initial to final probability (P(POS|W)) score
 ## Backward Matrix: stores the final to initial probability (P(POS|W)) score
 ## For calculating the P(POS|W), each element in the forward matrix is multiplied with the corresponding element in the same cell of the backward matrix
 ## For each word the maximum probability is calculated, and its respective part of speech is assigned to that word.
+## We formulate a HMM with POS labels as hidden state dependent on the previous. Each observed word is dependent fully on the corresponding POS label.
 ## 
 ## Viterbi:
 ##----------
@@ -36,6 +40,7 @@
 ## We have used two matrices
 ##	- store the value for posterior
 ##	- store the part of speech max value for that character equivalent to {for i=1 to N argmax(log(v[t - 1]) + log(P(i,j))}
+## We formulate a HMM with POS as hidden state dependent on the previous and the transition. Each observed word is dependent fully on the corresponding POS label.
 ## 
 ## Posterior:
 ##------------ 
