@@ -50,6 +50,16 @@
 ## General Strategy discussion:
 ##----------------------------- 
 ## We had general strategy discussion with group cgalani-sahk-skcanick
+## 
+## Output:
+##--------
+## ==> So far scored 2000 sentences with 29442 words.
+##                    Words correct:     Sentences correct:
+##    0. Ground truth:      100.00%              100.00%
+##      1. Simplified:       93.92%               47.45%
+##          2. HMM VE:       95.30%               55.75%
+##         3. HMM MAP:       95.04%               54.45%
+## ----
 #
 
 ####
