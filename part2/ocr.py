@@ -49,6 +49,14 @@
 ## General Strategy discussion:
 ##----------------------------- 
 ## We had general strategy discussion with group cgalani-sahk-skcanick
+## 
+## Output:
+##--------
+## Simplified: SUPREME COURT OF THF UN1TED STATES
+## HMM VE: SUPREME COURT OF THF UN1TED STATES
+## HMM MAP: SUPREME COURT OF THE UN1TED STATES
+## 
+#
 
 from PIL import Image, ImageDraw, ImageFont
 import sys
