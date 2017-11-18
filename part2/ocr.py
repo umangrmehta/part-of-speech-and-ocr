@@ -7,6 +7,40 @@
 # (based on skeleton code by D. Crandall, Oct 2017)
 #
 
+# PD: character segment of a letter in the image; C: character
+##
+## Simplified:
+##-------------
+## It is calculated using the formula: P(C|PD) = P(PD|C)P(C)/P(PD)
+## Probability of character segment of a letter in the image is constant and it is ingored for calculating the simplified probability
+## => P(C|PD) is directly proportional to P(PD|C)P(C)
+## The maximum of the posterior probability for each character segment of a letter in the image is used to derive its letter.
+##
+## Variable Elimination:
+##-----------------------
+## References: https://www.cs.cmu.edu/~epxing/Class/10708-14/scribe_notes/scribe_note_lecture4.pdf
+## 			   https://www.youtube.com/watch?v=7zDARfKVm7s
+## We have used forward-backward algorith for implementing variable elimination using HMM.
+## Forward Matrix: stores the initial to final probability (P(C|PD)) score
+## Backwar Matrix: stores the final to initial probability (P(C|PD)) score
+## For calculating the P(C|PD), each element in the forward matrix is multiplied with the corresponding element in the same cell of the backward matrix
+## For each character segment of a letter in the image the maximum probability is calculated, and its respective letter is displayed.
+## 
+## Viterbi:
+##----------
+## Calculated using the formula : v[t+1] = e(w[t+1]) {for i=1 to N max( v[t]*P(ij)}
+## where t+1 is the current letter; t is the previous letter and e() is the emission probability; v is viterbi value; N is total number of characters in the training data
+## This is Bellman's equation
+## We have taken tranformation of this equation: v[t+1] = log(e(w[t+1])) {for i=1 to N argmax( log(v[t])+log(P(ij))}
+## We have used two matrices
+##	- store the value for posterior
+##	- store the letter
+## 
+## Emission:
+##------------ 
+## If the pixels match then we assign a value of 0.8 and else 0.2
+## P(each character segment from the test image|training character) is the final product of the above for each pixel.
+
 from PIL import Image, ImageDraw, ImageFont
 import sys
 import numpy as np
