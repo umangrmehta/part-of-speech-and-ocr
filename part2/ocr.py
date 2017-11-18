@@ -8,6 +8,8 @@
 #
 
 # PD: character segment of a letter in the image; C: character
+# Hidden states: Character
+# Observable states: character segment of a letter in the image
 ##
 ## Simplified:
 ##-------------
@@ -15,6 +17,7 @@
 ## Probability of character segment of a letter in the image is constant and it is ignored for calculating the simplified probability
 ## => P(C|PD) is directly proportional to P(PD|C)P(C)
 ## The maximum of the posterior probability for each character segment of a letter in the image is used to derive its letter.
+## Character tags are independent of each other and the observed character segment of a letter in the image is dependent on the character tag.
 ##
 ## Variable Elimination:
 ##-----------------------
@@ -25,6 +28,7 @@
 ## Backward Matrix: stores the final to initial probability (P(C|PD)) score
 ## For calculating the P(C|PD), each element in the forward matrix is multiplied with the corresponding element in the same cell of the backward matrix
 ## For each character segment of a letter in the image the maximum probability is calculated, and its respective letter is displayed.
+## We formulate a HMM with characters as hidden state dependent on the previous. Each observed character segment of a letter in the image is dependent fully on the corresponding character.
 ## 
 ## Viterbi:
 ##----------
@@ -35,7 +39,8 @@
 ## We have used two matrices
 ##	- store the value for posterior
 ##	- store the letter equivalent to {for i=1 to N argmax( log(v[t-1]) + log(P(i,j))}
-## 
+## We formulate a HMM with characters as hidden state dependent on the previous and the transition. Each observed character segment of a letter in the image is dependent fully on the corresponding character.
+##
 ## Emission:
 ##------------ 
 ## If the pixels match then we assign a value of 0.8 and else 0.2
@@ -243,7 +248,7 @@ def hmm_viterbi(sentence):
 
 print "Simplified: " + "".join(simplified(test_letters))
 print "HMM VE: " + "".join(hmm_ve(test_letters))
-print "HMM Viterbi: " + "".join(hmm_viterbi(test_letters))
+print "HMM MAP: " + "".join(hmm_viterbi(test_letters))
 
 # Each training letter is now stored as a list of characters, where black
 #  dots are represented by *'s and white dots are spaces. For example,
