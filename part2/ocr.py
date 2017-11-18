@@ -40,6 +40,10 @@
 ##------------ 
 ## If the pixels match then we assign a value of 0.8 and else 0.2
 ## P(each character segment from the test image|training character) is the final product of the above for each pixel.
+## 
+## General Strategy discussion:
+##----------------------------- 
+## We had general strategy discussion with group cgalani-sahk-skcanick
 
 from PIL import Image, ImageDraw, ImageFont
 import sys
