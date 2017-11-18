@@ -28,8 +28,8 @@
 ## 
 ## Viterbi:
 ##----------
-## Calculated using the formula : v[t+1] = e(w[t+1]) {for i=1 to N max( v[t]*P(ij)}
-## where t+1 is the current letter; t is the previous letter and e() is the emission probability; v is viterbi value; N is total number of characters in the training data
+## Calculated using the formula : v[t] = e(w[t]) {for i=1 to N max( v[t-1]*P(ij)}
+## where t is the current letter; t-1 is the previous letter and e() is the emission probability; v is viterbi value; N is total number of characters in the training data
 ## This is Bellman's equation
 ## We have taken tranformation of this equation: v[t+1] = log(e(w[t+1])) {for i=1 to N argmax( log(v[t])+log(P(ij))}
 ## We have used two matrices
