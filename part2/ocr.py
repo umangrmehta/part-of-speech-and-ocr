@@ -80,7 +80,7 @@ bitmaps = {}
 letPtnTst = {}
 
 characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
-totalCharCount = 0
+totalChar = 0
 transitions = np.zeros((len(characters), len(characters)), dtype=np.int_)
 charCount = {}
 initial = {}
@@ -91,7 +91,7 @@ for c in characters:
 file = open(train_txt_fname, 'r');
 for line in file:
     for ltIDX in range(len(line)):
-        totalCharCount += 1
+        totalChar += 1
         if line[ltIDX] in characters:
             charCount[line[ltIDX]] += 1
         if ltIDX == 0 and (line[ltIDX] in characters):
@@ -102,6 +102,7 @@ for line in file:
             else:
                 transitions[characters.index(line[ltIDX - 1]), characters.index(line[ltIDX])] += 1
 
+totalCharCount = sum(charCount.values())
 totalInitials = sum(initial.values())
 
 for i in characters:
@@ -120,7 +121,6 @@ for bitmap in train_letters:
             if train_letters[bitmap][rowIDX][colIDX] == '1':
                 pixelProb[rowIDX, colIDX] += 1
 
-
 def meanDensity(sentence):
     summation = 0
     for letter in sentence:
@@ -129,13 +129,7 @@ def meanDensity(sentence):
             for colIDX in range(len(row)):
                 if row[colIDX] == '1':
                     summation += 1
-    return summation / float(len(sentence))
-
-
-meanTrainDensity = meanDensity(train_letters.values())
-meanTestDensity = meanDensity(test_letters)
-pixelDensityError = abs(meanTestDensity - meanTrainDensity)
-
+    return summation / float(len(sentence)) 
 
 def emissionCal(currentChar, flatSegment):
     matchAlpha = 1.0
@@ -145,8 +139,7 @@ def emissionCal(currentChar, flatSegment):
         else:
             matchAlpha *= 0.2
     return matchAlpha
-
-
+ 
 def simplified(sentence):
     charList = []
     for charSegment in sentence:
@@ -168,6 +161,7 @@ def simplified(sentence):
 
 
 def hmm_ve(sentence):
+    charList = []
     fwdState = np.zeros([len(characters), len(sentence)], np.float_)
     for charIDX, charSegment in enumerate(sentence):
         flatSegment = [item for row in charSegment for item in row]
@@ -195,7 +189,7 @@ def hmm_ve(sentence):
             emission = emissionCal(currentChar, flatSegment)
             prevStateSum = 0
             if charIDX == 0:
-                prevStateSum = 1.0 * charCount[currentChar] / totalCharCount
+                prevStateSum = 1.0 * charCount[currentChar] / totalInitials
             else:
                 for prevChar in characters:
                     transition = 1.0 * (transitions[characters.index(prevChar), characters.index(currentChar)] + 1) / (charCount[prevChar] + 1 if charCount[prevChar] > 0 else totalCharCount)
@@ -207,7 +201,6 @@ def hmm_ve(sentence):
 
     convolution = np.multiply(fwdState, bwdState)
     return [characters[idx] for idx in np.argmax(convolution, axis=0)]
-
 
 def hmm_viterbi(sentence):
     viterbi = np.empty([len(characters), len(sentence)], dtype=np.float_)
@@ -225,8 +218,9 @@ def hmm_viterbi(sentence):
                 maxPrevChar[(characters.index(currentChar), charIDX)] = ''
             else:
                 for prevChar in characters:
-                    transValue = 1 if (transitions[characters.index(prevChar), characters.index(currentChar)]) <= 1 else (transitions[characters.index(prevChar), characters.index(currentChar)])
-                    transProb = math.log(transValue) - math.log(charCount[prevChar] if charCount[prevChar] > 0 else totalCharCount)
+                    transValue = (1.0/totalChar) if (transitions[characters.index(prevChar), characters.index(currentChar)]) <= 1 else (transitions[characters.index(prevChar), characters.index(currentChar)])
+                    #transProb = math.log(transValue) - math.log(charCount[prevChar] if charCount[prevChar] > 0 else totalCharCount)
+                    transProb = math.log(transValue)
                     interViterbi = (viterbi[characters.index(prevChar), charIDX - 1] + transProb)
                     if interViterbi > maxViterbi:
                         maxChar = prevChar
